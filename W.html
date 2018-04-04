@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Wialon Playground - Login</title>
+	<script type="text/javascript" src="//code.jquery.com/jquery-latest.min.js"></script>
+	<script type="text/javascript" src="//wialon.rnc52.ru/wsdk/script/wialon.js"></script>
+	<script type="text/javascript" src="js/wialon_login.js"></script>
+	<script type="text/javascript" src="js/wialon_units.js"></script>
+<script type="text/javascript">
+// Print message to log
+function msg(text) { $("#log").prepend(text + "<br />"); }
+
+function send_comants (sid, svc, params) {
+	var URL = 'http://wialon.rnc52.ru/wialon/ajax.html?sid=' +sid+ '&svc=' +svc+ '&params={' +params+ '}';
+	alert (URL);
+}
+
+// execute when DOM ready
+$(document).ready(function(){
+	// For more info about how to generate token check
+	// http://sdk.wialon.com/playground/demo/app_auth_token
+	//$("#token").val("5dce19710a5e26ab8b7b8986cb3c49e58C291791B7F0A7AEB8AFBFCEED7DC03BC48FF5F8");
+	$("#token").val("1d5a4a6ab2bde440204e6bd1d53b3af88496A7B53422896519264789126841607F692CEB");	// wialon
+//	$("#token").val("c5a76d06f77af04aa4c9fa0699d465c20810D5F77D20145B627F2A7B8B04C0FA97A91877");	// V.Smirnov
+	// bind actions to buttons click
+	$("#login_btn").click( login );
+	$("#logout_btn").click( logout );
+	$("#user_btn").click( getUser );
+	$("#init").click( init );
+	login();
+//	init();
+//	getUser();
+});
+</script>
+
+</head>
+<body>
+<h4>SDK
+http://wialon.rnc52.ru/
+</h4>
+Token: <input type="text" id="token" size=76 />
+<input type="button" value="login" id="login_btn" />
+<input type="button" value="logout" id="logout_btn" />
+<input type="button" value="get user" id="user_btn" />
+<input type="button" value="INIT" id="init" />
+<br />
+Select unit: <select id="units"><option></option></select>
+<div id="log" style='border: 1px solid #bbc; color: #668;'></div>
+</body>
+</html>
