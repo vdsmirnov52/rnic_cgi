@@ -844,6 +844,9 @@ def	outhelp():
 	-b	Блокировка ТС по отсутствию договора
 	-c 	Контроль данных { %s }
 	-h	Справка
+	
+	select * FROM atts WHERE autos IS NULL ;
+	update atts a set autos = (SELECT id_ts FROM transports t WHERE t.device_id = a.device_id AND t.transport_id = a.transport_id) WHERE autos IS NULL;
 	""" % ' | '.join(check_pnames)
 
 #QQQ	SELECT * FROM nddatacacheentry WHERE lastdata_id >0 AND prevdata_id >0 AND lastupdated > '2016-11-28 00:00:00' AND lastupdated < '2016-11-28 23:59:59';
