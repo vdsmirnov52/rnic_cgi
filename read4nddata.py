@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""	Утилита 
+"""	Утилита. Загрузка данных из архива nddata_20YYMM.sql в БД vms_ws. 
 """
 import  os, sys, time,  getopt
 import	glob
