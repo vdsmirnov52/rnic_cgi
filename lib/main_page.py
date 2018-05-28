@@ -232,7 +232,7 @@ def	main (request, conf):
 #	print """<html xmlns="http://www.w3.org/1999/xhtml">"""
 	try:
 		print "<head> <meta name='Author' content='V.Smirnov'> <title>%s</title>" % CONFIG.get('System', 'title')
-		rel_css ((r'/css/style.css', r'/css/calendar.css'))
+		rel_css ((r'/css/style.css', r'/css/calendar.css', r'/css/font-awesome/css/font-awesome.min.css'))
 		jscripts ((r'/jq/jquery.onajax_answer.js', r'/jq/jquery.js', r'/js/calendar.js', r'/js/check_forms.js'))
 		print jslocal, "</head>"
 		print """<body>"""

@@ -18,15 +18,15 @@ CONTRCT = {
 	# CREATE VIEW varms AS SELECT a.*, o.bname AS oname, c.cnum, b.bid_num, o.region, o.rname FROM arms a LEFT JOIN vorganizations o ON a.id_org = o.id_org LEFT JOIN contracts c ON a.id_contr = c.id_contr LEFT JOIN bids b ON a.id_bid = b.id_bid ;	
 	# alter table arms ADD column sn_bid character varying(32);
 	# id_arm | id_org | id_bid | id_contr | login | passwd | family | pname | post | phones | emails | url | tm_creat | tm_send | who_send | ps | rem | dt_creat | oname | cnum | bid_num, o.region, o.rname
-	'varms':	{	'title':        "Список контактов", 'form_tit': "Описание контакта",
+	'varms':	{	'title':        "Список АРМов", 'form_tit': "Описание контакта",
 		'order': ['dt_creat', 'oname', 'sn_bid',
 			'login', 'passwd',
 			'family', 'pname', 'phones', #'emails',
 			'post', #'tm_creat', 'tm_send',
 			],
 		'update': { 'login': 's:64', 'passwd': 's:64', 'sn_bid': 's:32',
-			#'family': 's:32', 'pname': 's:32', 'phones': 's:32', 'post': 's:32', 'sn_bid': 's:32',
-			'rem': 't:256', 'ps': 't:256', 'url':'s:128', 'emails': 's:128',	# 'id_org': 'i', 'id_bid': 'i', 'id_contr': 'i'
+			'family': 's:32', 'pname': 's:32', 'phones': 's:32', 'post': 's:32', #'sn_bid': 's:32',
+		#	'rem': 't:256', 'ps': 't:256', 'url':'s:128', 'emails': 's:128',	# 'id_org': 'i', 'id_bid': 'i', 'id_contr': 'i'
 			},
 		'thead': {'family': "Фамилия", 'pname': "Имя Отчество", 'phones': "Телефон", 'email': "E-mail", 'post': "Должность", 'oname': "Организация", 'sn_bid': '№ Заявки',
 			'login': 'Логин', 'passwd': 'Пароль',},

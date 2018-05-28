@@ -599,25 +599,36 @@ def	get_persons(idb, id_contr, id_org):
 	""" Показать контакты	"""
 	sbutt = """<input type='button' class='butt' value='Добавить в контакты' onclick="out_person(%d,%d, 0);" />""" % (id_contr, id_org)
 	res = idb.get_table ('persons', "id_persn IN (SELECT id_persn FROM person2x WHERE id_contr=%d OR id_org=%d) ORDER BY family;" % (id_contr, id_org))
+	arms = idb.get_table ('arms', 'id_org=%d' % id_org)
 	
-	if not res:	return	sbutt
-	cdict = res[0]
+	if not res and not arms:	return	sbutt
 	sss = ["<table id='persons' width=99% cellspacing=0>"]
-	for row in res[1]:
-		post = srem = ''
-		phones = '_'*10 
-		email = '_'*20
-		if row[cdict.index('post')]:	post = row[cdict.index('post')]
-		if row[cdict.index('phones')]:	phones = row[cdict.index('phones')]
-		if row[cdict.index('email')]:	email = row[cdict.index('email')]
-		if row[cdict.index('rem')]:
-			if post:	srem = "title='%s %s'" % (post, row[cdict.index('rem')])
-			else:		srem = "title='%s'" % row[cdict.index('rem')]
-		sss.append ("""<tr class='line' onclick="$('#persons tr').removeClass('mark'); $(this).addClass('mark'); $('#bm_cstat').removeClass('mark');
-			$('#add_doc tr').removeClass('mark'); $('#bids tr').removeClass('mark'); $('#wform_result').html('');"
-			ondblclick="out_person(%d,%d,%d);" %s>""" % (id_contr, id_org, row[cdict.index('id_persn')], srem))
-		sss.append ("<td><b>%s %s</b> %s</td><td>ph: <b>%s</b></td><td>Email: <b>%s</b></td></td>" % (row[cdict.index('family')], row[cdict.index('names')], post, phones, email))
-	sss.append ("</table>")# +sbutt)
+	if res:
+		cdict = res[0]
+		for row in res[1]:
+			phones = '_'*10 
+			family = ''
+			email = '_'*20
+			post = srem = ''
+			if row[cdict.index('phones')]:	phones = row[cdict.index('phones')]
+			if row[cdict.index('family')]:	family = row[cdict.index('family')]
+			if row[cdict.index('email')]:	email = row[cdict.index('email')]
+			if row[cdict.index('post')]:	post = row[cdict.index('post')]
+			if row[cdict.index('rem')]:
+				if post:	srem = "title='%s %s'" % (post, row[cdict.index('rem')])
+				else:		srem = "title='%s'" % row[cdict.index('rem')]
+			sss.append ("""<tr class='line' onclick="$('#persons tr').removeClass('mark'); $(this).addClass('mark'); $('#bm_cstat').removeClass('mark'); $('#add_doc tr').removeClass('mark');
+				$('#bids tr').removeClass('mark'); $('#wform_result').html('');" ondblclick="out_person(%d,%d,%d);" %s>""" % (id_contr, id_org, row[cdict.index('id_persn')], srem))
+			sss.append ("""<td><b>%s %s</b> %s</td><td>т.<b>%s</b> </td><td><i class="fa fa-envelope-o" aria-hidden="true"></i> <b>%s</b></td></td>""" % (family, row[cdict.index('names')], post, phones, email))
+	if arms:	# ARMS ['id_arm', 'id_org', 'id_bid', 'id_contr', 'login', 'passwd', 'family', 'pname', 'post', 'phones', 'emails', 'url', 'tm_creat', 'tm_send', 'who_send', 'ps', 'rem', 'dt_creat', 'sn_bid']
+		ad = arms[0]
+		for ar in arms[1]: 
+			family = pname = post = ''
+			if ar[ad.index('family')]:	family = ar[ad.index('family')]
+			if ar[ad.index('pname')]:	pname = ar[ad.index('pname')]
+			if ar[ad.index('post')]:	post = ar[ad.index('post')]
+			sss.append ("""<tr class='line bfinf'><td class='bfinf'>%s %s</td><td colspan=2>%s<td>""" % ( pname, family, post ))
+	sss.append ("</table>")
 	if id_contr or id_org:
 		sss.append (sbutt)
 	return "\n".join(sss)
@@ -848,8 +859,8 @@ def	out_table (SS, idb, tname, res, dtbl = None):
 	if corder:
 		ssorder = corder.split()
 		if len(ssorder) == 2:
-			imark = "<img src='../img/toggle-up.png'>"
-		else:	imark = "<img src='../img/toggle-down.png'>"
+			imark = '<i class="fa fa-arrow-up" aria-hidden="true"></i> '	#"<img src='../img/toggle-up.png'>"
+		else:	imark = '<i class="fa fa-arrow-down" aria-hidden="true"></i> '	#"<img src='../img/toggle-down.png'>"
 		corder = ssorder[0]
 	else:
 		imark = ''

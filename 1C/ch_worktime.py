@@ -565,5 +565,17 @@ if __name__ == "__main__":
 	except	getopt.GetoptError:	outhelp()
 	if new_autos:
 		print YELLOW, "Not in 'vms_ws' new_autos len:", len(new_autos), NC
-		for sa in new_autos:	print "\t", sa
+		rrr = dbcntr.get_table ('transports', "gosnum IN ('%s')" % "', '".join(new_autos), "gosnum, device_id")
+		isgosnum = {}
+		if rrr:
+			print YELLOW, "Is in 'contracts':", NC, "\n\t",
+			for r in rrr[1]:
+				isgosnum[r[0]] = r[1]
+				print r[0],
+			print
+		for sa in new_autos:
+			if isgosnum.has_key(sa):
+				continue
+				print "\t", sa, isgosnum[sa]
+			else:	print "\t", sa
 	print "dt %9.4f" % (sttmr - time.time())
