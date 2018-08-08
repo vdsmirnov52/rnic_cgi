@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python -u
 # -*- coding: utf-8 -*-
 """	Утилита crontab	vms_import.py
 	Сбор данных о состоянию работоспособности ТС в БД vms_ws 
@@ -420,11 +420,11 @@ def	chk_atts ():
 			prow (r, d)
 			continue
 		jres = DB_cont.get_table("transports", "gosnum='%s' OR garnum='%s'" % (gosnum, gosnum))
-		jd = jres[0]
 		if not jres:
 			new_ts.append(r)
 			continue
-		elif len(jres[1]) > 1:
+		jd = jres[0]
+		if len(jres[1]) > 1:
 			print "Double TS", "gosnum='%s' OR garnum='%s'" % (gosnum, gosnum), "id_ts:", id_ts, "\n\t", jd
 			for jr in jres[1]:
 				prow (jr)
@@ -845,8 +845,11 @@ def	outhelp():
 	-c 	Контроль данных { %s }
 	-h	Справка
 	
-	select * FROM atts WHERE autos IS NULL ;
-	update atts a set autos = (SELECT id_ts FROM transports t WHERE t.device_id = a.device_id AND t.transport_id = a.transport_id) WHERE autos IS NULL;
+	SELECT * FROM atts WHERE autos IS NULL ;
+	UPDATE atts a set autos = (SELECT id_ts FROM transports t WHERE t.device_id = a.device_id AND t.transport_id = a.transport_id) WHERE autos IS NULL;
+
+	SELECT gosnum, t.bm_ssys, t.id_org FROM transports t WHERE t.bm_ssys > 0 AND t.id_org > 0 AND bm_ssys != (SELECT bm_ssys FROM organizations o WHERE o.id_org = t.id_org);
+	UPDATE transports t SET bm_ssys = (SELECT bm_ssys FROM organizations o WHERE o.id_org = t.id_org)  WHERE t.bm_ssys > 0 AND t.id_org > 0 AND bm_ssys != (SELECT bm_ssys FROM organizations o WHERE o.id_org = t.id_org);
 	""" % ' | '.join(check_pnames)
 
 #QQQ	SELECT * FROM nddatacacheentry WHERE lastdata_id >0 AND prevdata_id >0 AND lastupdated > '2016-11-28 00:00:00' AND lastupdated < '2016-11-28 23:59:59';
