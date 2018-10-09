@@ -9,18 +9,17 @@ LIBRARY_DIR = r"/home/smirnov/pylib"	# Путь к рабочей директо
 sys.path.insert(0, LIBRARY_DIR)
 import  dbtools
 
-query_get_tc = """
-SELECT id_ts, bm_ssys, bm_status, bm_wtime, last_date FROM wtransports WHERE bm_status & 3072 = 0 ORDER BY bm_ssys;
-;"""
-
 #	Соответствие между кодами подсистем vms_ws: subsystem[code] <=> contracts: subsys[code] (subsys[pnc_labl])
 ss_codes = { 'Тестирование БО': 1, 'ПП': 2, 'ША': 4, 'ЖКХ': 8, 'СОГ': 16, 'ОВ': 32, 'ЖКХ-М': 64, 'СМП': 128, 'ЧТС': 256, 'ПП ЦДС (тестовая)': 2048, 'ПП НПАП (тестовая)': 4096,
 	'ВТ': 8192, 'СХ': 16384, 'ЛХ': 32768,
-	'СП': 65536, 'ДТ-НН': 131072,
+	'СП': 65536, 'ДТ-НН': 131072, 'ДТ-НО': 262144,
 	}
 
+curr_data =	time.strftime("%Y-%m-%d 00:00:00", time.localtime(time.time()))
+query_get_tc = """ SELECT id_ts, bm_ssys, bm_status, bm_wtime, last_date FROM wtransports WHERE bm_status & 3072 = 0 ORDER BY bm_ssys; """
+
 def	get_status_tc (sdate):
-	""" Сбор данных за сутки <sdate>	"""
+	""" Сбор данtных за сутки <sdate>	"""
 	qqq = query_get_tc	# % (sdate, sdate, sdate, sdate, sdate, sdate)
 	rows = DB_cont.get_rows(qqq)
 	codes = {}
@@ -35,7 +34,7 @@ def	get_status_tc (sdate):
 			jall += 1
 			r1 += 1
 			if last_date:
-				if str(last_date) > '2018-01-22 00:00:00':
+				if str(last_date) > curr_data:	#'2018-01-22 00:00:00':
 					r2 += 1
 				else:	r3 += 1
 			else:	r4 += 1
@@ -43,17 +42,44 @@ def	get_status_tc (sdate):
 				if jss & bm_ssys:
 					if jss in ssys_codes:	jsys += 1
 					if codes.has_key(jss):
-						codes[jss][0] += r1
-						codes[jss][1] += r2
-						codes[jss][2] += r3
-						codes[jss][3] += r4
+						codes[jss][0] += r1	# Всего
+						codes[jss][1] += r2	# Сегодня
+						codes[jss][2] += r3	# Ранее
+						codes[jss][3] += r4	# Никогда
 					else:	codes[jss] = [r1, r2, r3, r4]
 	#		if jall > 111:	break
 	#		print jall, codes
-			continue
+	#		continue
 	#	out_text (jall, jsys, codes)
 		return jall, jsys, codes
 	else:	print qqq
+
+query_region = """ SELECT id_ts, bm_ssys, bm_status, bm_wtime, last_date, region FROM wtransports WHERE bm_status & 3072 = 0 ORDER BY region, bm_ssys; """
+#	stat_ts_log	(ctm, y, m, d, bm_ssys, total, today, earlier, never, rem)
+def	get_region_ts ():
+	print	""" Статистика по районам	"""
+	curr_tm = int (time.time())
+	rows = DB_cont.get_rows (query_region)
+	if not rows:	return
+	old_region = 0
+	codes = {}
+	for r in rows:
+		r1 = r2 = r3 = r4 = 0
+		id_ts, bm_ssys, bm_status, bm_wtime, last_date, region = r
+		if old_region == 0:	old_region = region
+		if old_region != region:
+			querys = ["DELETE FROM stat_ts_log WHERE region = %d AND %s" % (region, time.strftime("y = %Y AND m =%m AND d = %d", time.localtime(curr_tm)))]
+			for k in codes.keys():
+				querys.append ("INSERT INTO stat_ts_log (region, ctm, y, m, d, bm_ssys, total) VALUES (%d, %d, %s, %d, %d)" % (region, curr_tm, time.strftime("%Y,%m,%d", time.localtime(curr_tm)), k, codes[k]))
+			if not DB_cont.qexecute (";\n".join(querys)):
+				print old_region, codes
+			codes = {}
+			old_region = region
+		else:
+			if codes.has_key (bm_ssys):
+				codes[bm_ssys] += 1
+			else:	codes[bm_ssys] = 1
+			
 
 def	out_text (jall, jsys, codes):
 		print "	    Работали								 "
@@ -109,9 +135,11 @@ inv_ss_codes = {
 	32768: 'Данные мониторинга техники лесного хозяйства', 
 	65536: 'Данные мониторинга транспорта физкультурно-оздоровительных комплексов',
 	131072: 'Данные мониторинга Дорожной техники Нижнего Новгорода',
+	262144: 'Данные мониторинга Дорожной техники Нижегородской области',
 	}
 ssys_codes = [2, 4, 8,16,128]
-order_codes = [2, 4, 8,16,128, 32, 256, 8192, 16384, 32768, 131072, 65536, 2048, 4096, 1,]
+order_codes = [2, 4, 8,16,128, 32, 256, 8192, 16384, 32768, 131072, 262144, 65536, #2048, 4096,
+		1,]
 
 def	res_print (sdate, res, fout = sys.stdout):
 	""" Формировать текстовый файл	"""
@@ -234,7 +262,8 @@ def	outhelp():
 	-i	Формировать HTML
 	-o	файл вывода [stdout]	/home/smirnov/MyTests/CGI/health_status_TC.html
 	-m	отправить файл по e-mail
-	""" % bases['contr']
+	-r	Формировать данные по регионам в stat_ts_log
+	"""	# % bases['contr']
 
 ###	select * FROM atts WHERE autos IN (SELECT id_ts FROM transports WHERE id_org IN (SELECT id_org FROM organizations WHERE inn = 5251002531));
 #DB_vms =	None
@@ -248,14 +277,16 @@ if __name__ == "__main__":
 	FL_help = False
 	FL_test = False
 	FL_html = False
+	FL_regs = False
 	FL_email = False
 	file_name = None
 	str_date = time.strftime("%d.%m.%Y", time.localtime(time.time()))
 	try:
-		optlist, args = getopt.getopt(sys.argv[1:], 'htim:o:')
+		optlist, args = getopt.getopt(sys.argv[1:], 'htrim:o:')
 		for o in optlist:
 			if o[0] == '-h':	FL_help = True
 			if o[0] == '-t':	FL_test = True
+			if o[0] == '-r':	FL_regs = True
 			if o[0] == '-i':	FL_html = True
 			if o[0] == '-m':	FL_email = True
 			if o[0] == '-o':	file_name = o[1]
@@ -274,6 +305,9 @@ if __name__ == "__main__":
 				print key, "\t=", bases[key], '\t>',
 				ddb = dbtools.dbtools (bases[key], 0)
 				if not ddb.last_error:	print 'OK'
+		elif FL_regs:	# Статистика по районам
+			DB_cont = dbtools.dbtools (bases['contr'])
+			get_region_ts()
 		elif FL_help:	outhelp()
 		else:
 		#	if not str_date:	str_date = time.strftime("%d.%m.%Y", time.localtime(time.time()))

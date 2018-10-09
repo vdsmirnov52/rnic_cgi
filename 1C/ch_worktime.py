@@ -269,6 +269,9 @@ def	get_next_auto (dbwtm, dbvms):	# id_auto | month | is_work | work_time | wher
 				qsmark.append ("UPDATE session_opt SET id_auto_last = %d" % aid) ### ???
 				query = ';\n'.join(qsmark)
 				if dbwtm.qexecute (query):	return aid
+			else:
+				print "#"*33
+				return	-1
 	#	print "### "*11
 	else:	print  "NOT", query
 
@@ -342,7 +345,7 @@ def	outhelp():
 	-d	Фиксировать машины удаленный в 1С -df <file.csv> 
 	-x	Путь к файлу списка машин в формате XML
 	-f	Путь к файлу списка машин в формате CSV (utf-8)
-	-w	Обновить список Машин в work_statistic
+	-w	Обновить список Машин в work_statistic (БД worktime)
 	-s	Начать новую сессию сбора данных (обновить session_opt)
 	"""
 
@@ -552,6 +555,7 @@ if __name__ == "__main__":
 				jtm = time.time()
 				res = get_next_auto (dbwtm, dbvms)
 				if not res:	break
+				if res < 0:	continue
 				dtm = 9 + int (time.time() - jtm)
 				if dtm > 130:	dtm = 130
 				jsh = time.strftime("%H", time.localtime(time.time()))

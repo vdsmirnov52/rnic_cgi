@@ -271,6 +271,7 @@ def	save_tabl (idb, SS, request, dtable):
 
 		drow = idb.get_dict("SELECT * FROM %s  WHERE %s;" % (set_table, swhere))
 		lset = cglob.diff_update (dtable['update'], drow, request)
+	#	print "<span class='bfinf'>", set_table, swhere, "</span>", drow
 	#	print lset, dtable['update']
 	#	return
 		if lset:

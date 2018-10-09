@@ -73,7 +73,7 @@ class   dbtools:
 			self.desc = [f[0] for f in self.curs.description]
 			if fall:	return  self.curs.fetchall()
 			else:		return  self.curs.fetchone()
-		except (psycopg2.OperationalError, psycopg2.ProgrammingError, psycopg2.IntegrityError):
+		except (psycopg2.OperationalError, psycopg2.ProgrammingError, psycopg2.IntegrityError, psycopg2.InternalError):
 			self.perrs ()
 		finally:
 			self.conn.commit()

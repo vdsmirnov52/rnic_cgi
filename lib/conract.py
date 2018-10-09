@@ -11,6 +11,7 @@ import	cglob
 import	dicts
 
 RES_YN =	(['cod', 'name'], [(0,'Да'),(1, 'Нет')])
+RES_YNC =	(['cod', 'name'], [(0,'Да'),(1, 'Нет'),(2,'Сегодня')])
 RES_NDS =	(['cod', 'name'], [(0,'без НДС'),(1, 'с НДС')])
 RES_BIDS =	(['cod', 'name'], [(0,'Откр'),(1, 'Закр'),(2, 'Все')])
 RES_STTS =	(['cod', 'name'], [(1024+2048,'Отмена'),(1024, 'Блокировать'), (4096, 'Блок. E-mail'),(2048, 'Удалить')])	# Стаус ТС
@@ -1047,6 +1048,8 @@ def	ttt(SS, request):
 				where_list.append ("bm_wtime & 1023 > 0")
 			elif request['where_attwork'] == '1':
 				where_list.append ("bm_wtime & 1023 = 0")
+			elif request['where_attwork'] == '2':
+				where_list.append ("bm_wtime & 512 > 0")
 		if tname == 'wtransports':
 			ts_status = 0
 			if request.has_key('where_ts_status_1024'):		ts_status += 1024
@@ -1219,11 +1222,11 @@ def	ttt(SS, request):
 			else:	where_attmark = ""
 			RCAMARK = idb.get_table ('wtransports', "amark IS NOT NULL ORDER BY mname", "DISTINCT amark, amark AS mname")
 			cglob.out_select ('where_attmark', RCAMARK, key = where_attmark, sopt = """ onchange="document.myForm.submit();" """, sfirst = ' ')
-			print "<td>Работает:"
+			print "<td>Работа:"
 			if request.has_key('where_attwork') and request ['where_attwork'].isdigit():
 				where_attwork = int(request ['where_attwork'])
 			else:	where_attwork = None
-			cglob.out_select ('where_attwork', RES_YN, key = where_attwork, sopt = """ onchange="document.myForm.submit();" """, sfirst = ' ')
+			cglob.out_select ('where_attwork', RES_YNC, key = where_attwork, sopt = """ onchange="document.myForm.submit();" """, sfirst = ' ')
 	#		print "<td>Стат:"
 			if request.has_key('where_ts_status_1024'):
 				print """<input type='checkbox' name='where_ts_status_1024' checked><b>Блк</b>"""

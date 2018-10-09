@@ -206,6 +206,7 @@ def	diff_update (update, dct, rqst, ignore = None):
 			if c in ['cdate', 'period_valid']:
 				val = sfdate(rqst[c])
 			elif c == 'bm_status':
+				if dct[c] == None:	dct[c] = 0
 				if rqst[c].isdigit() and int(rqst[c]) > 0:
 					ival = int(rqst[c])
 					if ival > 2048 and ival < 4096:	#2048:
