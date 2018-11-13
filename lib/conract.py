@@ -1229,11 +1229,11 @@ def	ttt(SS, request):
 			cglob.out_select ('where_attwork', RES_YNC, key = where_attwork, sopt = """ onchange="document.myForm.submit();" """, sfirst = ' ')
 	#		print "<td>Стат:"
 			if request.has_key('where_ts_status_1024'):
-				print """<input type='checkbox' name='where_ts_status_1024' checked><b>Блк</b>"""
-			else:	print """<input type='checkbox' name='where_ts_status_1024'>Блк"""
+				print """<input type='checkbox' title='Скрыть Блкокированные ТС' name='where_ts_status_1024' checked><b></b>"""
+			else:	print """<input type='checkbox' title='Показать Блкокированные ТС' name='where_ts_status_1024'>"""
 			if request.has_key('where_ts_status_2048'):
-				print """<input type='checkbox' name='where_ts_status_2048' checked><b>Удл</b>"""
-			else:	print """<input type='checkbox' name='where_ts_status_2048'>Удл"""
+				print """<input type='checkbox' title='Скрыть Удаленные ТС' name='where_ts_status_2048' checked><b></b>"""
+			else:	print """<input type='checkbox' title='Показать Удаленные ТС' name='where_ts_status_2048'>"""
 			'''
 			print request['where_ts_status_1024']
 			if request.has_key('where_attstat') and request ['where_attstat'].isdigit():
@@ -1298,7 +1298,7 @@ def	ttt(SS, request):
 		print """<span class='bfinf'>найдено %d записей</span>""" % len(res[1])
 	else:
 		out_table(SS, idb, tname, (idb.desc, None), DICT_TABS[tname])
-		print """<span class='bferr'>Данных НЕТ</span>""", tname, wheres
+		print """<span class='bferr'>Данных НЕТ</span> """, tname.upper(), 'WHERE', wheres
 
 def	perror (tit = None, txt = None):
 	if not tit:	tit = ''

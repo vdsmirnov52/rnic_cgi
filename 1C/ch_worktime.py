@@ -262,7 +262,7 @@ def	get_next_auto (dbwtm, dbvms):	# id_auto | month | is_work | work_time | wher
 					qsmark.append("UPDATE nav2regnum SET stat = 2, where_mod = '%s' WHERE id = %d" % (wtmod, aid))
 					qsmark.append("UPDATE nav_work_time SET is_work = 1, work_time = %f, where_set = '%s' WHERE id_auto = %d;" % (work_time, wtmod, aid))
 				else:
-					print "NNN", aid
+					print "NNN id, device_id", aid, device_id
 					qsmark.append ("UPDATE nav2regnum SET where_mod = '%s' WHERE id = %d" % (wtmod, aid))
 					qsmark.append ("UPDATE nav_work_time SET work_time = %f, where_set = '%s' WHERE id_auto = %d;" % (work_time, wtmod, aid))
 		#		print	qsmark

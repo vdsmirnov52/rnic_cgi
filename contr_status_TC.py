@@ -56,30 +56,45 @@ def	get_status_tc (sdate):
 
 query_region = """ SELECT id_ts, bm_ssys, bm_status, bm_wtime, last_date, region FROM wtransports WHERE bm_status & 3072 = 0 ORDER BY region, bm_ssys; """
 #	stat_ts_log	(ctm, y, m, d, bm_ssys, total, today, earlier, never, rem)
+#	select bm_ssys, sum(total) FROM stat_ts_log WHERE d = 18 GROUP BY bm_ssys ORDER BY bm_ssys;
+
 def	get_region_ts ():
 	print	""" Статистика по районам	"""
 	curr_tm = int (time.time())
 	rows = DB_cont.get_rows (query_region)
 	if not rows:	return
-	old_region = 0
+	old_region = -1
 	codes = {}
+#	j = jc = 0
 	for r in rows:
-		r1 = r2 = r3 = r4 = 0
+	#	j += 1
 		id_ts, bm_ssys, bm_status, bm_wtime, last_date, region = r
-		if old_region == 0:	old_region = region
+		if not bm_ssys in order_codes and bm_ssys & 1:
+			bm_ssys -= 1
+		if old_region == -1:	old_region = region
 		if old_region != region:
-			querys = ["DELETE FROM stat_ts_log WHERE region = %d AND %s" % (region, time.strftime("y = %Y AND m =%m AND d = %d", time.localtime(curr_tm)))]
+			querys = ["DELETE FROM stat_ts_log WHERE region = %d AND %s" % (old_region, time.strftime("y = %Y AND m =%m AND d = %d", time.localtime(curr_tm)))]
 			for k in codes.keys():
-				querys.append ("INSERT INTO stat_ts_log (region, ctm, y, m, d, bm_ssys, total) VALUES (%d, %d, %s, %d, %d)" % (region, curr_tm, time.strftime("%Y,%m,%d", time.localtime(curr_tm)), k, codes[k]))
+#				jc += codes[k]
+				querys.append ("INSERT INTO stat_ts_log (region, ctm, y, m, d, bm_ssys, total) VALUES (%d, %d, %s, %d, %d)" % (old_region, curr_tm, time.strftime("%Y,%m,%d", time.localtime(curr_tm)), k, codes[k]))
 			if not DB_cont.qexecute (";\n".join(querys)):
 				print old_region, codes
+	#		print old_region, codes
 			codes = {}
 			old_region = region
+			codes[bm_ssys] = 1
 		else:
 			if codes.has_key (bm_ssys):
 				codes[bm_ssys] += 1
 			else:	codes[bm_ssys] = 1
-			
+
+	querys = ["DELETE FROM stat_ts_log WHERE region = %d AND %s" % (region, time.strftime("y = %Y AND m =%m AND d = %d", time.localtime(curr_tm)))]
+	for k in codes.keys():
+#		jc += codes[k]
+		querys.append ("INSERT INTO stat_ts_log (region, ctm, y, m, d, bm_ssys, total) VALUES (%d, %d, %s, %d, %d)" % (region, curr_tm, time.strftime("%Y,%m,%d", time.localtime(curr_tm)), k, codes[k]))
+	if not DB_cont.qexecute (";\n".join(querys)):	print old_region, codes
+
+#	print "#"*22, j, jc, region, codes
 
 def	out_text (jall, jsys, codes):
 		print "	    Работали								 "
