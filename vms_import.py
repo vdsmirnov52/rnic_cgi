@@ -845,6 +845,9 @@ def	outhelp():
 	-c 	Контроль данных { %s }
 	-h	Справка
 	
+Контроль дублей в atts -> CREATE VIEW vcount_autos AS SELECT atts.autos, count(atts.id_att) AS count FROM atts WHERE (atts.autos IN ( SELECT vtransports.id_ts FROM vtransports)) GROUP BY atts.autos;
+	SELECT c.*, t.* FROM vcount_autos c, transports t WHERE count > 1 AND autos = t.id_ts;
+
 	SELECT * FROM atts WHERE autos IS NULL ;
 	UPDATE atts a set autos = (SELECT id_ts FROM transports t WHERE t.device_id = a.device_id AND t.transport_id = a.transport_id) WHERE autos IS NULL;
 

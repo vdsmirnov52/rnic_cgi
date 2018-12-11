@@ -48,6 +48,6 @@ def	main():
 if __name__ == "__main__":
 	sttmr = time.time()
 	print "Start:", sys.argv, time.strftime("%Y-%m-%d %T", time.localtime(sttmr))
-	wbak_name = "/home/smirnov/backup/worktime.%s.sql " % time.strftime("%Y%m%d", time.localtime(sttmr))	## ZZZZZZZZZZZZZZZZZZZZZ
-	os.system ("/usr/bin/pg_dump -U smirnov worktime > %s ; chown smirnov:smirnov %s " % (wbak_name, wbak_name))	#time.strftime("%Y%m%d", time.localtime(sttmr)))
+#	wbak_name = "/home/smirnov/backup/worktime.%s.sql " % time.strftime("%Y%m%d", time.localtime(sttmr))	## ZZZZZZZZZZZZZZZZZZZZZ
+#	os.system ("/usr/bin/pg_dump -U smirnov worktime > %s ; chown smirnov:smirnov %s " % (wbak_name, wbak_name))	#time.strftime("%Y%m%d", time.localtime(sttmr)))
 	main()
