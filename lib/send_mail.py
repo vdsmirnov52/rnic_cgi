@@ -99,7 +99,7 @@ def	send_notice (tolist, autos):
 	проведение диагностических работ (во вложении) и прислать нам подписанную скан-копию данной заявки.
 	
 	По всем вопросам просим обращаться в техническую поддержку АО «РНИЦ Нижегородской области»
-	по тел. (831) 261-75-97 (доб. 307, 303) или e-mail: rnic-nn@rnc52.ru.
+	по тел. (831) 261-75-97 (доб. 307, 308) или e-mail: rnic-nn@rnc52.ru.
 	"""
 	sbody = shead + "\n\t".join(autos) + sbutt
 	return	send_file (tolist, files, body=sbody, subject=ssubj)
@@ -110,11 +110,12 @@ def	send_sorry (tolist, autos):
 	ssubj = "«РНИЦ Нижегородской области» уведомляет о регламентных работах"
 	shead = """Уважаемый абонент!\n
 	Сообщаем Вам, что с 18.00 06.10.2017 по 22.00 06.10.2017 специалистами 
-	АО «РНИЦ Нижегородской области» будут выполняться профилактические работы.
-	
-	Ввиду вышеизложенного, возможны перерывы в работе сервисов.
-
+	АО «РНИЦ Нижегородской области» будут выполняться профилактические работы.\n
+	Ввиду вышеизложенного, возможны перерывы в работе сервисов.\n
 	Приносим свои извинение за предоставленные неудобства.
+	"""
+
+	shead = """Добрый день!\n\nНастоящим уведомляем, что в ночь с 12 на 13 декабря 2018г технической службой АО "РНИЦ Нижегородской Области" планируется проведение аварийно-восстановительных работ на оборудовании Центрального узла с остановкой сервиса.\nРасчетное время проведения работ: с 23ч00м 12.12.2018 по 06ч00м 13.12.2018
 	"""
 	sbody = shead + "\n\t".join(autos)
 #	print sbody
@@ -138,13 +139,16 @@ def	send_sssssssssss():
 	import	dbtools
 
 #	qqq = "select id_org, post, email FROM vpersons WHERE id_org IN (select id_org FROM vorganizations WHERE bm_ssys > 0) AND email IS NOT NULL ORDER BY id_org"
-	qqq = "select id_org, post, email FROM vpersons WHERE id_org IN (select id_org FROM organizations WHERE bm_ssys > 0 AND id_org IN (select DISTINCT id_org FROM contracts  WHERE ctype = 8)) AND email IS NOT NULL ORDER BY id_org;"
+#	Всем
+#	qqq = "select id_org, post, email FROM vpersons WHERE id_org IN (select id_org FROM organizations WHERE bm_ssys > 0 AND id_org IN (select DISTINCT id_org FROM contracts  WHERE ctype = 8)) AND email IS NOT NULL ORDER BY id_org;"
+#	СМП
+	qqq = "select id_org, post, email FROM vpersons WHERE id_org IN (select id_org FROM organizations WHERE bm_ssys = 2 AND id_org IN (select DISTINCT id_org FROM contracts  WHERE ctype = 8)) AND email IS NOT NULL ORDER BY id_org;"
 	idb = dbtools.dbtools("host=127.0.0.1 dbname=contracts port=5432 user=smirnov")
 	rows = idb.get_rows(qqq)
 	if not rows:	return
 	id_oooo = 0
 	for r in rows:
-		time.sleep(29)
+		time.sleep(13)
 		id_org, post, email = r
 		if id_oooo == id_org:	continue
 		if not email.strip():	continue

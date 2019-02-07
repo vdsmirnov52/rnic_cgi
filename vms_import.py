@@ -332,6 +332,15 @@ def	check_yullik (r, d):
 	ss_nd = []
 	ss_ts = []
 	querys = []
+	if r[d.index('yearofcar')] and len (r[d.index('yearofcar')]) > 4:
+		print "ZZZ\t", r[d.index('regnum')], 'yearofcar:"%s"' % r[d.index('yearofcar')]
+		return
+		'''
+		for k in d:
+			if not r[d.index(k)]:	continue
+			print k,"\t'%s'" % r[d.index(k)]
+			return
+		'''
 	for c in cols_ts:
 		if r[d.index(c)] and dct_ts[c] != r[d.index(c)]:	#	not dct_ts[c] or (r[d.index(c)] and dct_ts[c] != r[d.index(c)]):
 			ss_ts.append("%s = '%s'" % (c, r[d.index(c)]))

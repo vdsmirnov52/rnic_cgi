@@ -1,8 +1,12 @@
 #!/usr/bin/python -u
 # -*- coding: utf-8 -*-
 """     Демон vms_getdd.py
+
+	nohup /home/smirnov/MyTests/CGI/vms_getdd.py > /home/smirnov/MyTests/log/vms_getdd.log &
+
 	- Читать данные nddata_20YYMM из БД vms_ws -> contracts
 	- Если receiver.recv_ts('inn') > 0	Писать данные в receiver last_pos, data_pos
+	- Обновляет список машин в receiver.recv_ts
 """
 import	os, sys, time
 
@@ -16,12 +20,19 @@ bases = {
 	}
 
 def	get_racv_list ():
+	""" Читмть (обновить) с список device_id для ТС	"""
 	dev_list = []
 	res = RECVR.get_table('recv_ts', 'inn > 0', cols='device_id')
 	if not res:	return
 	for r in res[1]:
 		if r[0]:	dev_list.append(int(r[0]))
 	return	dev_list
+
+def	clear_old_data (dtime = 24*3600):
+	""" Удалить устаревшие навигационные данные в БД receiver 	"""
+	tmin = int(time.time()) - dtime
+	query = "DELETE FROM data_pos WHERE t < %d; DELETE FROM data_prms WHERE t < %d;" % (tmin, tmin)
+	print	"\t", query, RECVR.qexecute(query)
 
 def	test ():
 	print "Читать данные nddata_20YYMM из БД vms_ws -> contracts"
@@ -37,10 +48,13 @@ def	test ():
 	return	dres
 
 def	get_nddata (tname, last_id):
-	print 'get_nddata\t', tname, last_id
+#	print 'get_nddata\t', tname, last_id
 
 	ftime = '%Y-%m-%d %H:%M:%S'
 	intm = int(time.time())
+	if not last_id:
+		print 'get_nddata\t', tname, time.strftime(ftime, time.localtime(intm))
+
 #	print "time.time", intm, 'last_id', last_id, type(last_id)
 #	if last_id  and last_id.isdigit() and int (last_id )> 0:
 	if last_id  and	last_id > 0:
@@ -87,23 +101,51 @@ def	get_nddata (tname, last_id):
 		'''##########
 		if rid > max_id:	max_id = rid
 		j += 1
-	print '#'*11, "\tlen(res[1]): %d, j: %d, max_id: %d" % (len(res[1]), j, max_id)
+	print "\tlen(res[1]): %d, j: %d, max_id: %d" % (len(res[1]), j, max_id)
 	return	max_id
 
 def     update_recv_ts ():
+	""" Обновить список ТС	"""
 	dbcntr = dbtools.dbtools('host=127.0.0.1 dbname=contracts port=5432 user=smirnov')
 	dbi = dbtools.dbtools('host=127.0.0.1 dbname=receiver port=5432 user=smirnov')
-	query = "SELECT id_ts, gosnum, marka, a.device_id, inn FROM transports t, organizations o, atts a WHERE o.bm_ssys=131072 AND t.id_org = o.id_org AND id_ts = autos AND a.last_date > '%s' ORDER BY o.id_org;" % time.strftime("%Y-%m-%d 00:00:00", time.localtime (time.time ()))
-	print query
+	
+	query = "SELECT id_org, inn, bm_ssys, stat FROM org_desc WHERE bm_ssys & (131072+64+2) > 0"
+	rows = dbi.get_rows (query)
+	list_org = []
+	for r in rows:
+		id_org, inn, bm_ssys, stat = r
+		if bm_ssys == 131072 and stat == 0:	continue
+		list_org.append(id_org)
+	print	"list_org:", list_org
+
+#	query = "SELECT id_ts, gosnum, marka, a.device_id, inn, uin FROM transports t, organizations o, atts a WHERE o.bm_ssys=131072 AND t.id_org = o.id_org AND id_ts = autos AND a.last_date > '%s' ORDER BY o.id_org;" % time.strftime("%Y-%m-%d 00:00:00", time.localtime (time.time ()))
+	query = "SELECT id_ts, gosnum, marka, a.device_id, inn, uin, o.bm_ssys FROM transports t, organizations o, atts a WHERE o.id_org IN (%s) AND t.id_org = o.id_org AND id_ts = autos AND a.last_date > '%s' ORDER BY o.id_org;" % (
+		str(list_org)[1:-1], time.strftime("%Y-%m-%d 00:00:00", time.localtime (time.time ())))
+#	print query
 	rows = dbcntr.get_rows (query)
 	if not rows:
 		print query
 		return
 	for r in rows:
-		id_ts, gosnum, marka, device_id, inn = r
+		id_ts, gosnum, marka, device_id, inn, uin, bm_ssys = r
+		if marka:
+			marka = "'%s'" % marka
+		else:	marka = 'NULL'
 		if device_id < 0:
-#			print "W\t", id_ts, gosnum, marka, device_id, inn
-			continue
+		#	print "WWW\t", id_ts, gosnum, marka, device_id, inn, uin, bm_ssys
+			rw = dbi.get_row ("SELECT gosnum, device_id, inn FROM recv_ts WHERE gosnum = '%s' OR device_id = %s" % (gosnum, uin))
+			if rw:
+				g, d, i = rw
+				if gosnum == g and uin == d and inn == i:	
+					print "Wialon\t", id_ts, gosnum, marka, device_id, inn
+				
+			else:
+				if bm_ssys == 131072:	# Уборка снега
+					query = "INSERT INTO recv_ts (idd, inn, gosnum, marka, device_id, stat_ts) VALUES ('idd%s', %s, '%s', %s, %s, 0)" % (uin, inn, gosnum, marka, uin)
+				else:	query = "INSERT INTO recv_ts (idd, inn, gosnum, marka, device_id, stat_ts) VALUES ('%s', %s, '%s', %s, %s, 0)" % ((device_id *-1), inn, gosnum, marka, uin)
+				print "Wialon\t", query, dbi.qexecute (query)
+		#	print rw
+			continue		### 20181211
 		rr = dbi.get_row ("SELECT gosnum, device_id, inn FROM recv_ts WHERE gosnum = '%s' OR device_id = %s" % (gosnum, device_id))
 		if rr:
 			g, d, i = rr
@@ -113,12 +155,11 @@ def     update_recv_ts ():
 			query = "DELETE FROM recv_ts WHERE gosnum = '%s' OR device_id = %s" % (gosnum, device_id)
 			print query, dbi.qexecute (query)
 	#	else:
-		query = "INSERT INTO recv_ts (idd, inn, gosnum, marka, device_id, stat_ts) VALUES ('idd%s', %s, '%s', '%s', %s, 0)" % (device_id, inn, gosnum, marka, device_id)
+		query = "INSERT INTO recv_ts (idd, inn, gosnum, marka, device_id, stat_ts) VALUES ('idd%s', %s, '%s', %s, %s, 0)" % (device_id, inn, gosnum, marka, device_id)
 		print query, dbi.qexecute (query)
 	#	print id_ts, gosnum, marka, device_id, inn, '<br>'
 	print "UPDATE org_desc SET count_ts",   dbi.qexecute ("UPDATE org_desc SET count_ts = (SELECT count(*) FROM recv_ts WHERE org_desc.inn = recv_ts.inn);")
 
-fname = r'/tmp/last_nddata_id'
 RECVR =	None
 #CONTR =	None
 #VMSWS =	None
@@ -140,6 +181,7 @@ def	main ():
 				j += 1
 				if j > 276:
 					j = 0
+					clear_old_data (24*3600)
 					update_recv_ts ()
 					recvr_dev_list = get_racv_list ()
 					time.sleep(11)
@@ -153,6 +195,9 @@ def	main ():
 	
 if __name__ == "__main__":
 	print 'Start:', sys.argv, time.strftime('\t%T', time.localtime(time.time()))
+	'''
+	update_recv_ts ()
+	'''
 	while True:
 		try:
 			pid = os.fork()
@@ -174,20 +219,3 @@ if __name__ == "__main__":
 		except:
 			print "#"*22
 		print	test()
-	'''
-	if not RECVR:
-	else:
-	#	print 'W'*20, int(time.time()),  (int(time.time()) % 360)
-		if (int(time.time()) % 3600) < 57:
-			update_recv_ts ()
-		j = 0
-		recvr_dev_list = get_racv_list ()
-#		print recvr_dev_list
-		while True:
-			max_id = get_nddata (time.strftime('nddata_%Y%m', time.localtime(time.time())), get_lastid())
-			print '#'*11, time.time(), time.strftime('\t%T', time.localtime(time.time()))
-			os.system ('echo %s > %s' % (max_id, fname))
-			j += 1
-			if j > 2:	break
-			time.sleep(19)
-	'''

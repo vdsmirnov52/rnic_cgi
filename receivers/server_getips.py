@@ -6,9 +6,9 @@
 	nohup /home/smirnov/MyTests/receivers/server_getips.py > /home/smirnov/MyTests/log/server_getips.log &
 
 	Настройка KEEPAILVE
-	# echo 5 >/proc/sys/net/ipv4/tcp_keepalive_intvl		время между повторами KEEPALIVE-проб
+	# echo 5 >/proc/sys/net/ipv4/tcp_keepalive_intvl	время между повторами KEEPALIVE-проб
 	# echo 5 >/proc/sys/net/ipv4/tcp_keepalive_probes 	максимальное количество KEEPALIVE-проб
-	# echo 20 >/proc/sys/net/ipv4/tcp_keepalive_time 		время неактивности соединения
+	# echo 20 >/proc/sys/net/ipv4/tcp_keepalive_time 	время неактивности соединения
 """
 
 import  os, time, sys
