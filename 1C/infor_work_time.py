@@ -23,7 +23,7 @@ bases = {
 #	CREATE VIEW vwork_ts AS SELECT lp.nm AS regnum, lp.inn, wt.* FROM work_ts wt INNER JOIN last_pos lp ON lp.id_lp = wt.id_lp;
 #	SELECT * FROM work_ts WHERE id_lp NOT IN (SELECT id_lp FROM last_pos);
 
-def	wialon_21C (swhere, fout = sys.stdout):
+def	wialon_21C (swhere, act_nm, fout = sys.stdout):
 	""" Выгрузка ТС из БД 'wialon'	"""
 	ignore_nm = [
 	'А677НЕ152', 'А680НЕ152', 'АР31652', 'АУ59652', 'В247УО152', 'В763СК152', 'Е365РЕ152', 'Е428ЕК152', 'Е766ХТ152', 'К004КТ152',
@@ -38,7 +38,8 @@ def	wialon_21C (swhere, fout = sys.stdout):
 #	query = "SELECT regnum, is_work, where_set FROM vwork_ts %s ORDER BY regnum;" % swhere
 #	query = "SELECT regnum, is_work, where_set FROM vwork_ts WHERE regnum NOT IN ('%s') ORDER BY regnum;" % "', '".join(ignore_nm)
 	fout.write(head_txt)
-	query = "SELECT lp.nm AS regnum, is_work, where_set FROM work_ts wt INNER JOIN last_pos lp ON lp.id_lp = wt.id_lp WHERE lp.inn >0 AND lp.nm NOT IN ('%s') ORDER BY regnum;" % "', '".join(ignore_nm)
+#	query = "SELECT lp.nm AS regnum, is_work, where_set FROM work_ts wt INNER JOIN last_pos lp ON lp.id_lp = wt.id_lp WHERE lp.inn >0 AND lp.nm NOT IN ('%s') ORDER BY regnum;" % "', '".join(ignore_nm)
+	query = "SELECT lp.nm AS regnum, is_work, where_set FROM work_ts wt INNER JOIN last_pos lp ON lp.id_lp = wt.id_lp WHERE lp.inn >0 AND lp.nm IN ('%s') ORDER BY regnum;" % "', '".join(act_nm)
 	rows = dbwialon.get_rows (query)
 	if not rows:
 		print 'Wialon not datas', query
@@ -232,7 +233,7 @@ if __name__ == "__main__":
 				fout_wlname = '%s.WLN%s' % (fout_name[:-4], fout_name[-4:]) 
 				print '\tSave Wialon data in file:\t', fout_wlname
 				fout = open (fout_wlname, 'w')
-				jl = wialon_21C(swhere, fout)
+				jl = wialon_21C(swhere, lautos, fout)
 				fout.close()
 				print "\tWialon Lines:\t\t\t", jl
 	except	getopt.GetoptError:	outhelp()

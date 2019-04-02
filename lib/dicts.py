@@ -120,7 +120,7 @@ CONTRCT = {
 		'functs': {'mark': "mark", }
 		},
 	'wtransports':	{ 'title': "Транспорт в работе", 'form_tit': "Транспорт",
-		'order': ['gosnum', 'amark', 'last_date', 'oname',
+		'order': ['gosnum', 'amark', 'bm_ssys', 'last_date', 'oname',
 			'rname', 'bid', 'tm_creat',
 			'bm_wtime',
 			'id_mail', 'bm_status',

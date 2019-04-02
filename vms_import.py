@@ -856,6 +856,7 @@ def	outhelp():
 	
 Контроль дублей в atts -> CREATE VIEW vcount_autos AS SELECT atts.autos, count(atts.id_att) AS count FROM atts WHERE (atts.autos IN ( SELECT vtransports.id_ts FROM vtransports)) GROUP BY atts.autos;
 	SELECT c.*, t.* FROM vcount_autos c, transports t WHERE count > 1 AND autos = t.id_ts;
+	SELECT * FROM atts WHERE device_id = NULL AND autos IN (SELECT id_ts FROM vcount_autos c, transports t WHERE count > 1 AND autos = t.id_ts);
 
 	SELECT * FROM atts WHERE autos IS NULL ;
 	UPDATE atts a set autos = (SELECT id_ts FROM transports t WHERE t.device_id = a.device_id AND t.transport_id = a.transport_id) WHERE autos IS NULL;
@@ -873,6 +874,25 @@ cparam =	None
 DB_vms =	None
 DB_cont =	None
 DEBUG =		False
+
+def	ttt ():
+	print	"SELECT id_ts, gosnum, t.device_id, a.device_id AS a_did, t.transport_id, a.transport_id AS a_tid FROM transports t, atts a WHERE id_ts = autos AND t.device_id != a.device_id;"
+	'''
+	global	DB_vms, DB_cont
+	gns = [	'Н446ОТ152','В971ХА152','7405НР52','Н726ОУ152','Т400МН52','6182АА52','Н727ОУ152','7704АА52','7705АА52','М802НС750','М861УМ152','М856УМ152','М862УМ152','О428ЕТ40',
+		'О452ЕМ52','Н432ОТ152','У913ОЕ52','7703АА52','Н732ОУ152','Н802ОУ152','Н448ОТ152','М854УМ152','Н434ОТ152','Н426ОТ152','9833АА52','4450АА52','Е465СУ77','С937НН750','О706РВ152']
+	DB_vms = dbtools.dbtools (bases['vms_ws'])
+	DB_cont = dbtools.dbtools (bases['contr'])
+	for gnum in gns:
+		dr = find_in_vms (gnum)
+		for k in dr:
+			print "\t%s:" % k, dr[k],
+		dtr =	DB_cont.get_dict("SELECT id_ts, device_id, transport_id FROM transports WHERE gosnum = '%s'" % gnum)
+		print dtr
+		if dr['dev_id'] == dtr['device_id'] and dr['id'] == dtr['transport_id']:
+			query = "UPDATE atts SET device_id = %d, transport_id = %d WHERE autos = %d;" % (dtr['device_id'], dtr['transport_id'], dtr['id_ts'])
+			print	query, DB_cont.qexecute (query)
+	'''
 
 if __name__ == "__main__":
 	FL_help = False
@@ -893,6 +913,7 @@ if __name__ == "__main__":
 			if o[0] == '-w':	FL_wtmr = True
 
 		if FL_test:
+			ttt ()
 			for key in bases:
 				print key, "\t=", bases[key], '\t>',
 				ddb = dbtools.dbtools (bases[key], 0)
