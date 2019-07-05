@@ -441,7 +441,7 @@ def	update_session_opt (sttmr):
 	stmend = "%d-%02d-01 00:00:00" % (tm_year, tm_mon)
 	query = "UPDATE session_opt SET month = %d, tmbeg = '%s', tmend = '%s', id_auto_last = 1" % (mon, stmbeg, stmend)
 	print YELLOW, query, dbwtm.qexecute(query), NC
-	query = "UPDATE nav2regnum SET stat = 1 WHERE stat > 0;s"
+	query = "UPDATE nav2regnum SET stat = 1 WHERE stat > 0;"
 	print YELLOW, query, NC, dbwtm.qexecute(query)
 	query = "DELETE FROM nav_work_time;"
 	print YELLOW, query, NC	#, dbwtm.qexecute(query)

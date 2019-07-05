@@ -333,7 +333,7 @@ def	check_yullik (r, d):
 	ss_ts = []
 	querys = []
 	if r[d.index('yearofcar')] and len (r[d.index('yearofcar')]) > 4:
-		print "ZZZ\t", r[d.index('regnum')], 'yearofcar:"%s"' % r[d.index('yearofcar')]
+		print YELLOW, "check_yullik\t", r[d.index('regnum')], NC, 'yearofcar:"%s"' % r[d.index('yearofcar')]
 		return
 		'''
 		for k in d:
@@ -470,6 +470,9 @@ def	chk_atts ():
 
 	if new_atts:	add_transport (d, new_atts, 'new_atts')
 	if new_ts:	add_transport (d, new_ts, 'new_ts')
+
+	query = "UPDATE atts a set autos = (SELECT id_ts FROM transports t WHERE t.device_id = a.device_id AND t.transport_id = a.transport_id) WHERE autos IS NULL;"
+	print YELLOW, '### \t', query, NC, DB_cont.qexecute(query)
 
 #	Контроль соответствия transport.id_ts -> atts.autos
 """	SELECT a.*, t.device_id, t.transport_id, id_ts FROM transports t
