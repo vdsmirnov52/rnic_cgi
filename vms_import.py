@@ -364,6 +364,55 @@ def	check_yullik (r, d):
 		if not DB_cont.qexecute(query):
 			print query
 
+def	check_phone ():
+	""" Проверка SIM карт	"""
+	sql = """SELECT nd.id, imei, nd.code, nd.name, nd.phone, nd.phone2, 
+	nd.operator1_id, nd.operator2_id, nd.icc_id1, nd.icc_id2, nd.devicetype_id,	--yu
+	nt.description as marka, t2d.id as t2d_id, atl.transport_id, t.regnum, t.garagenum, t.contractnumber,
+	t.transporttype_id, t.yearofcar, t.category_id, t.vinnumber, t.ptsnumber, t.ptsdate, t.registrationdate, t.registrationnumber, --yu
+        tt.code AS tmarka, tt.description AS tmodele, 
+        co.inn, 
+        ss.code AS sscode, tg.code AS tgroup
+        FROM navigationdevice nd
+        INNER JOIN transport2devicelink t2d on t2d.device_id=nd.id
+        INNER JOIN abstracttransportlink atl on atl.id=t2d.id AND atl.isdeleted = 0 AND atl.enddate IS NULL
+        INNER JOIN transport t on atl.transport_id=t.id
+        INNER JOIN subsystem ss ON ss.id = t.subsystem_id
+        INNER JOIN transporttype tt ON tt.id = t.transporttype_id
+        INNER JOIN navigationdevicetype nt ON nt.id = nd.devicetype_id
+        LEFT JOIN transportgroup tg ON tg.id = t.group_id
+        LEFT JOIN contractor co ON co.id = t.owner_id
+        WHERE nd.isdeleted=0
+	ORDER BY nd.id
+	"""
+	
+	rows = DB_vms.get_rows (sql)
+	if not rows:	return	False
+	d = DB_vms.desc
+	print	"Проверка SIM карт"	#,d
+	for r in rows:
+	#	if r[d.index('id')]:		cols.append('device_id=%d' % r[d.index('id')])
+	#	if r[d.index('transport_id')]:	cols.append('transport_id=%d' %  r[d.index('transport_id')])
+		phone = phone2 = None
+		if r[d.index('id')]:		device_id = r[d.index('id')]
+		if r[d.index('phone')]:		phone = r[d.index('phone')]		
+		if r[d.index('phone2')]:	phone2 = r[d.index('phone2')]		
+		adct = DB_cont.get_dict ("SELECT * FROM atts WHERE device_id = %s;" % device_id)
+		if not adct:		continue
+		sets = []
+		if adct.get('sim_1') != phone:
+			if phone:	sets.append ( "sim_1 = '%s'" % phone)
+			else:		sets.append ( "sim_1 = NULL")
+		if adct.get('sim_2') != phone2:
+			if phone2:	sets.append ( "sim_2 = '%s'" % phone2)
+			else:		sets.append ( "sim_2 = NULL")
+		if sets:
+		#	print	adct
+			query = "UPDATE atts SET %s WHERE device_id = %s;" % (", ".join (sets), device_id)
+			print	"\t", query, DB_cont.qexecute(query)
+		#	return
+
+
 def	chk_atts ():
 	sql = """SELECT nd.id, imei, nd.code, nd.name, nd.phone, nd.phone2, 
 	nd.operator1_id, nd.operator2_id, nd.icc_id1, nd.icc_id2, nd.devicetype_id,	--yu
@@ -748,6 +797,7 @@ def	check_param(pname):
 	if pname == 'all_ts':		return	chk_transport()
 	if pname == 'lastdate':		return	chk_lastdate()
 	if pname == 'atts':		return	chk_atts()
+	if pname == 'phone':		return	check_phone()
 	if pname == 'find_org':		return	find_atts ("id_org=0")
 	if pname == 'check_org':	return	check_org ()
 
@@ -872,7 +922,7 @@ def	outhelp():
 #QQQ	UPDATE transports t SET bm_ssys = (SELECT bm_ssys FROM organizations o WHERE t.id_org = o.id_org AND o.bm_ssys >0) WHERE bm_ssys = 0 AND id_org > 0;
 #QQQ	ALTER TABLE ONLY transports ADD CONSTRAINT transports_gosnum_key UNIQUE (gosnum);
 
-check_pnames = ['subsystem', 'all_ts', 'lastdate', 'atts', 'find_org', 'check_org']
+check_pnames = ['subsystem', 'all_ts', 'lastdate', 'atts', 'find_org', 'check_org', 'phone']
 cparam =	None
 DB_vms =	None
 DB_cont =	None
@@ -906,7 +956,7 @@ if __name__ == "__main__":
 	sttmr = time.time()
 	print "Start %i" % os.getpid(), sys.argv, time.strftime("%Y-%m-%d %T", time.localtime(sttmr))
 	try:
-		optlist, args = getopt.getopt(sys.argv[1:], 'htbdwc:')
+		optlist, args = getopt.getopt(sys.argv[1:], 'htbdwpc:')
 		for o in optlist:
 			if o[0] == '-h':	FL_help = True
 			if o[0] == '-t':	FL_test = True
