@@ -225,7 +225,7 @@ if __name__ == "__main__":
 			time.sleep(5)
 		j += 1
 		print '#'*22, j
-		if j > 113:	break
+	#	if j > 113:	break
 	'''
 	for k in routes.keys():
 		print k, "=\t", 
