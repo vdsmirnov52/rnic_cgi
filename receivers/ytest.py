@@ -6,6 +6,7 @@
 """
 import	os, sys, time
 import	urllib, json
+import	requests
 
 LIBRARY_DIR = r"/home/smirnov/MyTests/CGI/lib/"
 sys.path.insert(0, LIBRARY_DIR)
@@ -74,18 +75,17 @@ def	get_data (routes, clid = 'nijniyoblast'):
 
 def	save_file (list_out, clid = 'nijniyoblast'):
 	""" Отправить данные Yandex	"""
-	import	requests
         headers = {"Expect": None}
 	data = ['<?xml version="1.0" encoding="utf-8"?><tracks clid="%s">' % clid]
 	data.extend (list_out)
 	data.append ('</tracks>')
 #	print "\n".join(data), "\n", "#"*22
 	try:
-		r = requests.post("http://tst.extjams.maps.yandex.net/mtr_collect/1.x/", data={"data": "\n".join(data), "compressed": 0}, headers=headers)
+		r = requests.post("http://extjams.maps.yandex.net/mtr_collect/1.x/", data={"data": "\n".join(data), "compressed": 0}, headers=headers)
 		print r, r.text, clid
 	except:
 		exc_type, exc_value = sys.exc_info()[:2]
-		print	"EXCEPT save_file", label, escape(str(exc_type)), exc_value
+		print	"EXCEPT save_file", str(exc_type), exc_value
 	return
 	'''
 	head = """compressed=0&data=<?xml version="1.0" encoding="utf-8"?>\n<tracks clid="nijniyoblast">\n"""
@@ -112,7 +112,17 @@ inn2clid = {
 	5245014521: 'nn_bogorodskoe',	#     МУП "Богородское ПАП"
 	5246034418: 'nn_bor',		#     МУП "Борское ПАП"
 	5229006724: 'nn_sergach',	#     МП"Сергачский автобус"
+	5249076222: 'nn_dzerzhinsk',	# ООО "Орбита"
+	5249084953: 'nn_dzerzhinsk',	# ООО "Орбита-2"
+	5249061106: 'nn_dzerzhinsk',	# ООО "ДПП"
+	5249066619: 'nn_dzerzhinsk',	# ООО "ДПП плюс"
+	524900992249: 'nn_dzerzhinsk',	# ИП Лазарев Сергей Юрьевич
+	524908186307: 'nn_dzerzhinsk',	# ИП Сафин Халит Мустафинович
+	5249120827: 'nn_dzerzhinsk',	# ООО "Тройка"
+	5249066601: 'nn_dzerzhinsk',	# ООО "Транслайн плюс"
+	5249057251: 'nn_dzerzhinsk',	# ООО "Транслайн"
 	}
+
 clid2route = {}
 
 def	reload_route (inns):
@@ -215,11 +225,43 @@ def	get_clid2route (clid_list):
 				list_out.append("</track>")
 				save_file (list_out, clid)
 
+def	test (clids = None):
+	for clid in clid2route.keys():
+		if clids and clid not in clids:	continue
+		dclid = clid2route.get(clid)
+		print	clid
+		routs = dclid.get('routs')
+		if routs:
+			for r in routs.keys():
+				print	"\t%s\t" % r,
+				for n in routs[r]:	print n,
+				print
+'''
+	curl -X GET "http://nnovbus.rnc52.ru/api/depot/128/routes" -H "accept: application/json" -H "Authorization: Token 30e04452062e435a9b48740f19d56f45"      # Маршруты
+	r = requests.post("http://tst.extjams.maps.yandex.net/mtr_collect/1.x/", data={"data": "\n".join(data), "compressed": 0}, headers=headers)
+'''
+def	get_nimbus (clid = 'nn_bor'):
+	print	"get_nimbus"
+	r = requests.get("http://nnovbus.rnc52.ru/api/depot/128/routes", headers={"accept": "application/json", "Authorization": "Token 30e04452062e435a9b48740f19d56f45"})
+	print	r, type(r.text.encode('UTF-8'))
+	data = json.loads (r.text.encode('UTF-8'))
+	print	type (data), data.keys()
+	for route in data['routes']:
+		print	route.keys()
+		for k in [u'a', u'd', u'tt', u'tp', u'n', u'tm', u'u', u'isc', u'st', u'id']:
+			print	k, route[k]
+		break
+
+#	5249076222, 5249084953, 5249061106, 5249066619, 524900992249, 524908186307, 5249120827, 5249066601, 5249057251, 	
 if __name__ == "__main__":
 	j = 0
 	while True:
-		routes = reload_route ([5246034418, 5245014521, 5243019838, 5249006828])
+	#	routes = reload_route ([5246034418, 5245014521, 5243019838, 5249006828])
+		routes = reload_route ([5246034418, 5245014521, 5243019838, 5249006828, 5249076222, 5249084953, 5249061106, 5249066619, 524900992249, 524908186307, 5249120827, 5249066601, 5249057251])
 		clid_list = creat_clid2route ()
+	#	get_nimbus ()
+	#	test (['nn_bor', 'nn_dzerzhinsk'])
+	#	break
 		for i in xrange(111):
 			get_clid2route (clid_list)
 			time.sleep(5)
