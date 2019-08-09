@@ -21,15 +21,6 @@ routes = {
 	"235":	["Н246УР152", "Н247УР152", "Н248УР152", "Н254УР152"],
 	}
 
-'''
-	5245014521 | МУП "Богородское ПАП"  |
-	5246034418 | МУП "Борское ПАП"      |
-	5229006724 | МП"Сергачский автобус" |
-	5243019838 | МУП "АПАТ" Арзама
-	5249006828 | МУП "Экспресс" Дзержинск
-	SELECT * FROM vdata_pos WHERE gosnum IN (SELECT gosnum FROM recv_ts WHERE inn IN (5246034418, 5245014521))
-'''
-
 def	get_route (routes, gosnum):
 	for k in routes.keys():
 		if gosnum in routes[k]:	return	k

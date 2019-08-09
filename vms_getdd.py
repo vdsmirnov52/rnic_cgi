@@ -20,7 +20,7 @@ bases = {
 	}
 
 def	get_racv_list ():
-	""" Читмть (обновить) с список device_id для ТС	"""
+	""" Читать (обновить) с список device_id для ТС	"""
 	dev_list = []
 	res = RECVR.get_table('recv_ts', 'inn > 0', cols='device_id')
 	if not res:	return
@@ -106,12 +106,25 @@ def	get_nddata (tname, last_id):
 	print "\tlen(res[1]): %d, j: %d, max_id: %d" % (len(res[1]), j, max_id)
 	return	max_id
 
+"""
+131072+64+2
+      2 | СМУ ПП  | Система мониторинга и управления пассажирскими перевозками
+      4 | СМУ ША  | Система мониторинга и управления школьными автобусами
+      8 | СМ ЖКХ  | Система мониторинга транспортных средств жилищно-коммунального хозяйства
+     64 | ЖКХ-М   | ЖКХ-Мусоровозы(Экология)
+    128 | СМП     | Скорая помощь
+  16384 | СХ      | Сельское хозяйство
+  32768 | ЛХ      | Лесное хозяйство
+ 131072 | ДТ-НН   | Дорожная техника - Нижний Новгород
+ 262144 | ДТ-НО   | Дорожная техника - Нижегородская область
+
+"""
 def     update_recv_ts ():
 	""" Обновить список ТС	"""
 	dbcntr = dbtools.dbtools('host=127.0.0.1 dbname=contracts port=5432 user=smirnov')
 	dbi = dbtools.dbtools('host=127.0.0.1 dbname=receiver port=5432 user=smirnov')
 	
-	query = "SELECT id_org, inn, bm_ssys, stat FROM org_desc WHERE bm_ssys & (131072+64+2) > 0"
+	query = "SELECT id_org, inn, bm_ssys, stat FROM org_desc WHERE bm_ssys & (131072+128+64+2) > 0"
 	rows = dbi.get_rows (query)
 	list_org = []
 	for r in rows:
