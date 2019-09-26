@@ -1,6 +1,6 @@
 #!/usr/bin/python -u
 # -*- coding: utf-8 -*-
-"""	Файл	ytest.py
+"""	Демон	ytest.py
 	Передача данных о Пассажирских перевозках в Yandex
 	nohup /home/smirnov/MyTests/Yandex/ytest.py > /home/smirnov/MyTests/log/ytest.log &
 """
@@ -13,7 +13,8 @@ sys.path.insert(0, LIBRARY_DIR)
 
 import	dbtools
 
-dbi = dbtools.dbtools('host=212.193.103.20 dbname=receiver port=5432 user=smirnov')
+DBRCV = dbtools.dbtools('host=212.193.103.20 dbname=receiver port=5432 user=smirnov')
+DBGEO = dbtools.dbtools('host=212.193.103.21 dbname=geonornc52ru port=5432 user=smirnov')
 
 routes = {
 	"222т": ["Н253УР152"], 
@@ -31,15 +32,15 @@ def	get_data (routes, clid = 'nijniyoblast'):
 	for k in routes.keys():		gnum_list.extend(routes[k])
 	swhere  = "('%s')" % "', '".join(gnum_list)
 #	print swhere
-	rid = dbi.get_row ("SELECT max(id_dp) FROM vdata_pos WHERE gosnum IN %s" % swhere)
+	rid = DBRCV.get_row ("SELECT max(id_dp) FROM vdata_pos WHERE gosnum IN %s" % swhere)
 	print "rid:", rid
-	rows = dbi.get_rows ("SELECT * FROM vdata_pos WHERE id_dp > %s AND gosnum IN %s" % (rid[0], swhere))
-	d = dbi.desc
-#	print "dbi.desc", d
+	rows = DBRCV.get_rows ("SELECT * FROM vdata_pos WHERE id_dp > %s AND gosnum IN %s" % (rid[0], swhere))
+	d = DBRCV.desc
+#	print "DBRCV.desc", d
 	iddp = rid[0]
 	for j in xrange (11*10):	#555):
 		time.sleep(2)
-		rows = dbi.get_rows ("SELECT * FROM vdata_pos WHERE id_dp > %s AND gosnum IN %s ORDER BY ida, t" % (iddp, swhere))
+		rows = DBRCV.get_rows ("SELECT * FROM vdata_pos WHERE id_dp > %s AND gosnum IN %s ORDER BY ida, t" % (iddp, swhere))
 		idd = ""
 		list_out = []
 		if rows:
@@ -95,25 +96,70 @@ def	save_file (list_out, clid = 'nijniyoblast'):
 	cmnd = """curl -H "Expect:" --data @%s http://212.193.103.21/cgi-bin/03.cgi""" % fname
 	print cmnd
 	os.system(cmnd)
+	nn_pavlovo, nn_gorodets и nn_vyksa
 	'''
 
 inn2clid = {
-	5243019838: 'nn_arzamas',	#     МУП "АПАТ" Арзамас
-	5249006828: 'nn_dzerzhinsk',	#     МУП "Экспресс" Дзержинск
-	5245014521: 'nn_bogorodskoe',	#     МУП "Богородское ПАП"
-	5246034418: 'nn_bor',		#     МУП "Борское ПАП"
-	5229006724: 'nn_sergach',	#     МП"Сергачский автобус"
+	5243019838: 'nn_arzamas',	# МУП "АПАТ" Арзамас
+	5249006828: 'nn_dzerzhinsk',	# МУП "Экспресс" Дзержинск	WialonHost
+	5245014521: 'nn_bogorodskoe',	# МУП "Богородское ПАП"
+	5246034418: 'nn_bor',		# МУП "Борское ПАП"
+	5229006724: 'nn_sergach',	# МП"Сергачский автобус"
 	5249076222: 'nn_dzerzhinsk',	# ООО "Орбита"
 	5249084953: 'nn_dzerzhinsk',	# ООО "Орбита-2"
 	5249061106: 'nn_dzerzhinsk',	# ООО "ДПП"
 	5249066619: 'nn_dzerzhinsk',	# ООО "ДПП плюс"
+	524928382620: 'nn_dzerzhinsk',	# ИП Вавилова Т.В.
 	524900992249: 'nn_dzerzhinsk',	# ИП Лазарев Сергей Юрьевич
 	524908186307: 'nn_dzerzhinsk',	# ИП Сафин Халит Мустафинович
 	5249120827: 'nn_dzerzhinsk',	# ООО "Тройка"
+	5249138831: 'nn_dzerzhinsk',	# ООО "Компания Тройка"
 	5249066601: 'nn_dzerzhinsk',	# ООО "Транслайн плюс"
 	5249057251: 'nn_dzerzhinsk',	# ООО "Транслайн"
+	5249050619: 'nn_dzerzhinsk',	# ООО "Континент"
+	5247048220: 'nn_vyksa',		# МУП "Выксунское ПАП"	858
+	5252022315: 'nn_pavlovo',	# МУП "Павловское ПАП"		WialonHost	568
+	5252010951: 'nn_pavlovo',	# ООО "Квант" 5252010951	WialonHost	938
+	5252012557: 'nn_pavlovo',	# ООО "РусАвтоЛайн"		WialonHost	927
+	5252028596: 'nn_pavlovo',	# ООО "Автотайм"	928
+	5248024888: 'nn_gorodets',	# МУП "Городецпассажиравтотранс"	924
+	5248016213: 'nn_gorodets',	# ООО "Экипаж"	921
 	}
 
+
+def	update_ts (inns):
+	""" Обновить списки транспорта в dbname=geonornc52ru	"""
+#	DBGEO = dbtools.dbtools('host=212.193.103.21 dbname=geonornc52ru port=5432 user=smirnov')
+#	DBRCV = dbtools.dbtools('host=212.193.103.20 dbname=receiver port=5432 user=smirnov')
+	for inn in inns:
+		rowid = DBGEO.get_row ("SELECT id FROM data_organization WHERE inn = %s" % inn)
+		if not rowid:	continue
+		org_id = rowid[0]
+		query = "SELECT t.number, t.organization_id FROM data_transport t WHERE t.organization_id = %s" % org_id
+	#	query = "SELECT t.number, t.organization_id FROM data_transport t WHERE t.organization_id = (SELECT id FROM data_organization WHERE inn = %s)" % inn
+		rows = DBGEO.get_rows (query)
+		print query	#, rows
+		list_gnum = []
+		if rows:
+			for r in rows:		list_gnum.append(r[0])
+	#	org_id = organization_id = r[1]
+	#	print	query, "org_id:", org_id
+		if list_gnum:
+			qrec = "SELECT gosnum, marka FROM vlast_pos WHERE tinn = %s AND gosnum NOT IN ('%s')" % (inn, "','".join(list_gnum))
+		else:	qrec = "SELECT gosnum, marka FROM vlast_pos WHERE tinn = %s" % inn
+		print qrec
+		jrows = DBRCV.get_rows (qrec)
+		if jrows:
+			print	"%s\torganization_id: %s\n\t%s" % (inn, org_id, qrec)
+			for jr in jrows:
+				gosnum, marka = jr
+		#		print	"\t", gosnum, marka
+				if marka:	marka = "'%s'" % marka
+				else:		marka = "NULL"
+				qins = "INSERT INTO data_transport (number, title, organization_id, active) VALUES ('%s', %s, %s, 't');" % (gosnum, marka, org_id)
+				print "\t", qins, DBGEO.qexecute(qins)
+		'''
+		'''
 clid2route = {}
 
 def	reload_route (inns):
@@ -121,13 +167,13 @@ def	reload_route (inns):
 	global	clid2route
 	clear_clid2route ()
 
-	dbr = dbtools.dbtools('host=212.193.103.21 dbname=geonornc52ru port=5432 user=smirnov')
+#	DBGEO = dbtools.dbtools('host=212.193.103.21 dbname=geonornc52ru port=5432 user=smirnov')
 #	query = "SELECT t.number, t.route_id, r.title FROM data_transport t JOIN data_route r ON r.id = t.route_id WHERE t.organization_id IN (SELECT id FROM data_organization WHERE inn IN (5246034418, 5245014521))"
 	routes = {}
 	for inn in inns:
 		print	"ИНН:", inn
 		query = "SELECT t.number, t.route_id, r.title FROM data_transport t JOIN data_route r ON r.id = t.route_id WHERE t.organization_id IN (SELECT id FROM data_organization WHERE inn = %s)" % inn
-		rows = dbr.get_rows (query)
+		rows = DBGEO.get_rows (query)
 		if not rows:	continue
 
 		crout = {}
@@ -193,13 +239,15 @@ def	get_clid2route (clid_list):
 		swhere = clid2route[clid]['where']
 		maxtm = clid2route[clid]['tm']
 	#	print	"%s\t" % clid, swhere
-		rows = dbi.get_rows ("SELECT * FROM vdata_pos WHERE t > %s AND gosnum IN %s ORDER BY ida, t" % (maxtm, swhere))
-		d = dbi.desc
+		rows = DBRCV.get_rows ("SELECT * FROM vdata_pos WHERE t > %s AND gosnum IN %s ORDER BY ida, t" % (maxtm, swhere))
+		d = DBRCV.desc
 		idd = ""
 		list_out = []
+		curr_tm = int(time.time())
 		if rows:
 			for r in rows:
 				if not r[d.index('x')]:		continue
+				if curr_tm < r[d.index('t')]:	continue	###
 				if r[d.index('t')] > maxtm:	maxtm = r[d.index('t')]
 				if str(r[d.index('idd')]) != idd:
 					if list_out:	list_out.append("</track>")
@@ -208,7 +256,12 @@ def	get_clid2route (clid_list):
 					list_out.append ("""<track uuid="%s" deviceid="%s" softid="Yandex Maps" softver="2.10" category="s" route="%s" vehicle_type="bus">""" % (str(r[d.index('idd')]), device, route))
 					idd = str(r[d.index('idd')])
 
+				if curr_tm < r[d.index('t')]:
+			###		print (curr_tm - r[d.index('t')])
+					etm = curr_tm
+				else:	etm = r[d.index('t')]
 				list_out.append ("""\t<point latitude="%f" longitude="%f" avg_speed="%d" direction="%d" time="%s"/>""" % (
+				#	float(r[d.index('y')]), float(r[d.index('x')]), int(r[d.index('sp')]), int(r[d.index('cr')]), time.strftime("%d%m%Y:%H%M%S", time.gmtime (etm)) ))
 					float(r[d.index('y')]), float(r[d.index('x')]), int(r[d.index('sp')]), int(r[d.index('cr')]), time.strftime("%d%m%Y:%H%M%S", time.gmtime (r[d.index('t')])) ))
 			clid2route[clid]['tm'] = maxtm
 			if list_out:
@@ -227,30 +280,20 @@ def	test (clids = None):
 				print	"\t%s\t" % r,
 				for n in routs[r]:	print n,
 				print
-'''
-	curl -X GET "http://nnovbus.rnc52.ru/api/depot/128/routes" -H "accept: application/json" -H "Authorization: Token 30e04452062e435a9b48740f19d56f45"      # Маршруты
-	r = requests.post("http://tst.extjams.maps.yandex.net/mtr_collect/1.x/", data={"data": "\n".join(data), "compressed": 0}, headers=headers)
-'''
-def	get_nimbus (clid = 'nn_bor'):
-	print	"get_nimbus"
-	r = requests.get("http://nnovbus.rnc52.ru/api/depot/128/routes", headers={"accept": "application/json", "Authorization": "Token 30e04452062e435a9b48740f19d56f45"})
-	print	r, type(r.text.encode('UTF-8'))
-	data = json.loads (r.text.encode('UTF-8'))
-	print	type (data), data.keys()
-	for route in data['routes']:
-		print	route.keys()
-		for k in [u'a', u'd', u'tt', u'tp', u'n', u'tm', u'u', u'isc', u'st', u'id']:
-			print	k, route[k]
-		break
 
-#	5249076222, 5249084953, 5249061106, 5249066619, 524900992249, 524908186307, 5249120827, 5249066601, 5249057251, 	
+
 if __name__ == "__main__":
+#	list_inn = [5246034418, 5245014521, 5243019838, 5249006828, 5249076222, 5249084953, 5249061106, 5249066619, 524900992249, 524908186307, 5249120827, 5249066601, 5249057251]
+	list_inn = inn2clid.keys()
 	j = 0
 	while True:
-	#	routes = reload_route ([5246034418, 5245014521, 5243019838, 5249006828])
-		routes = reload_route ([5246034418, 5245014521, 5243019838, 5249006828, 5249076222, 5249084953, 5249061106, 5249066619, 524900992249, 524908186307, 5249120827, 5249066601, 5249057251])
+		if j%144 == 0:
+			print "Обновить списки транспорта"
+			update_ts (list_inn)	# Обновить списки транспорта
+	#	break
+
+		routes = reload_route (list_inn)
 		clid_list = creat_clid2route ()
-	#	get_nimbus ()
 	#	test (['nn_bor', 'nn_dzerzhinsk'])
 	#	break
 		for i in xrange(111):
@@ -259,18 +302,3 @@ if __name__ == "__main__":
 		j += 1
 		print '#'*22, j
 	#	if j > 113:	break
-	'''
-	for k in routes.keys():
-		print k, "=\t", 
-		for j in xrange(len(routes[k])):	print routes[k][j],
-		print
-	return	routes
-
-	j  = 0
-	while j < 3:
-		routes = reload_route ([5246034418, 5245014521, 5243019838, 5249006828, ])	# 5229006724	МП"Сергачский автобус"
-		get_data (routes)	#, clid)
-		j += 1
-		print '#'*22, j
-	
-	'''

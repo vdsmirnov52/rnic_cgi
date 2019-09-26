@@ -444,7 +444,7 @@ def	update_session_opt (sttmr):
 	query = "UPDATE nav2regnum SET stat = 1 WHERE stat > 0;"
 	print YELLOW, query, NC, dbwtm.qexecute(query)
 	query = "DELETE FROM nav_work_time;"
-	print YELLOW, query, NC	#, dbwtm.qexecute(query)
+	print YELLOW, query, NC, dbwtm.qexecute(query)
 #	sys.exit()
 
 if __name__ == "__main__":
@@ -555,6 +555,7 @@ if __name__ == "__main__":
 		elif Fchwstat:	# Обновить список Машин в work_statistic
 			ch_work_statistic (dbwtm, sttmr)
 		else:
+			print "#"*33
 			for j in range(9999):
 				jtm = time.time()
 				res = get_next_auto (dbwtm, dbvms)

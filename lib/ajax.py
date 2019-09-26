@@ -1207,8 +1207,31 @@ def	main (SCRIPT_NAME, request, referer):
 					else:
 						cglob.out_widget('wbox', shstat, txt = "<div class='green' style='padding: 5px'><b>Примечание: </b>%s<br/>&nbsp;&nbsp; успешно сохранено. </div>" % request['rem'].strip())
 						print "~eval| document.myForm.submit ();"
+			elif r"http://10.10.2.241/helps/servises.html" == referer:
+				print "~list|"	#, "XXX", str(request), request
+				path = r"/home/smirnov/MyTests/log/"
+				ftmp = r"/tmp/MyTests.logs"
+				curr_tm = time.time()
+				os.system("ls  %s > %s" % (path, ftmp))
+				tms = {}
+				print "<pre>"	#, time.strftime("%D", time.localtime(time.time ()))
+				for s in file("/tmp/MyTests.logs"):
+					fn = os.path.join(path, s.strip())
+					mtime = os.path.getmtime(fn)	#os.path.join(path, s.strip()))
+					tms[mtime] = fn
+				sss = list(tms.keys())
+				sss.sort()
+				for mtime in sss:
+					fn = tms[mtime]
+					if (curr_tm - mtime) < 1800:		sspan = "<span class='bfinf'>"
+					elif (curr_tm - mtime) < 86400:		sspan = "<span class='bfligt'>"
+					elif (curr_tm - mtime) < 2*86400:	sspan = "<span style='font-weight: bold; color: #864;'>"
+	#				elif (curr_tm - mtime) < 2*86400:	sspan = "<span class='bfligt'>"
+					else:					sspan = "<span class='bferr'>"
+					print sspan, time.strftime("%d.%m.%Y %T", time.localtime(mtime)), fn, "</spah>"
+				print "</pre>", "#"*44
 			else:
-				cglob.wdgwarnn("'Unknown shstat: [%s]!');" % request ['shstat'], str(request), obj = SS.objpkl)
+				cglob.wdgwarnn("'Unknown shstat: [%s] referer: %s!');" % (request ['shstat'], referer), str(request), obj = SS.objpkl)
 		#		print "~eval|alert ('Unknown shstat: [%s]!');" % request ['shstat']
 		else:
 			print "~shadow|"
