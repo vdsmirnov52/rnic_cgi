@@ -1030,7 +1030,7 @@ def	ttt(SS, request):
 	if request:
 		if request.has_key('set_table'):
 			tname = request['set_table']
-		else:	tname = 'vcontracts'
+		else:	tname = 'vorganizations'	#'vcontracts'
 		if request.has_key('where_region') and not tname in ['persons', 'history', 'vhistory']:
 			region = int(request['where_region'])
 			where_list.append ("region = %d" % region)
