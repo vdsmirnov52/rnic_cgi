@@ -332,10 +332,12 @@ def	check_yullik (r, d):
 	ss_nd = []
 	ss_ts = []
 	querys = []
+	r = list(r)
 	if r[d.index('yearofcar')] and len (r[d.index('yearofcar')]) > 4:
-		print YELLOW, "check_yullik\t", r[d.index('regnum')], NC, 'yearofcar:"%s"' % r[d.index('yearofcar')]
-		return
+		r[d.index('yearofcar')] = r[d.index('yearofcar')].strip()
 		'''
+		print YELLOW, "check_yullik\t", r[d.index('regnum')], NC, 'yearofcar:"%s"' % r[d.index('yearofcar')], r[d.index('transport_id')]
+		return
 		for k in d:
 			if not r[d.index(k)]:	continue
 			print k,"\t'%s'" % r[d.index(k)]
@@ -500,10 +502,16 @@ def	chk_atts ():
 				query = "UPDATE transports SET bm_status = %d WHERE id_ts = %d;" % (4+bm_status, jres[1][0][jd.index('id_ts')])
 			else:	query = "UPDATE transports SET bm_status = 4 WHERE id_ts = %d;" % jres[1][0][jd.index('id_ts')]
 			print YELLOW, gosnum, NC, '\t', query, DB_cont.qexecute(query)
+		elif FL_CBlok and (bm_status > 0 and (bm_status & TS_DELETE == 0)) and (not r[d.index('contractnumber')] or len(r[d.index('contractnumber')]) < 4):
+			# Блокировка ТС по отсутствию договора
+			query = "UPDATE transports SET bm_status = %d WHERE id_ts = %d;" % (TS_DELETE+bm_status, jres[1][0][jd.index('id_ts')])
+			print YELLOW, gosnum, NC, '\t', query, DB_cont.qexecute(query)
+		'''	TS_DELETE
 		elif FL_CBlok and (bm_status > 0 and (bm_status & TS_BLOCK == 0)) and (not r[d.index('contractnumber')] or len(r[d.index('contractnumber')]) < 4):
 			# Блокировка ТС по отсутствию договора
 			query = "UPDATE transports SET bm_status = %d WHERE id_ts = %d;" % (TS_BLOCK+bm_status, jres[1][0][jd.index('id_ts')])
 			print YELLOW, gosnum, NC, '\t', query, DB_cont.qexecute(query)
+		'''
 
 	#	if j > 222:	break
 
@@ -672,7 +680,7 @@ def	insert_atts (r, d, cols = [], vals = [], fff = None):
 	return	0
 
 def	check_ts_contr2vms (FLTS = None):
-	print "Блокировать/Удалить  машины в БД contracts пр исключении их в vms_ws", FLTS
+	print "Блокировать/Удалить  машины в БД contracts при исключении их в vms_ws", FLTS
 	sttm =  time.localtime(time.time())
 	tm_year, tm_mon, tm_mday = sttm[:3]
 	dbcontr = dbtools.dbtools (bases['contr'])
@@ -708,6 +716,8 @@ def	check_ts_contr2vms (FLTS = None):
 
 def	find_in_vms (gosnum):
 	""" Поиск активной машины в vms_ws	"""
+	global	DB_vms
+	if not DB_vms:	DB_vms = dbtools.dbtools (bases['vms_ws'])
 	query = """select ss.code, t.id, t.regnum, nd.id as dev_id, nd.code as dev_code, t.createdby_id
 	from transport t
 	left join subsystem ss on ss.id=t.subsystem_id
@@ -801,7 +811,8 @@ def	check_param(pname):
 	if pname == 'find_org':		return	find_atts ("id_org=0")
 	if pname == 'check_org':	return	check_org ()
 
-TS_BLOCK =	1024	
+TS_BLOCK =	1024	# Блокирована
+TS_DELETE = 	2048	# Удалена
 
 def	check_org ():
 	""" Контроль наличия ТС в transports и wtransports	"""

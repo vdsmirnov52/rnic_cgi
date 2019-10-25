@@ -38,8 +38,8 @@ def	get_data (routes, clid = 'nijniyoblast'):
 	d = DBRCV.desc
 #	print "DBRCV.desc", d
 	iddp = rid[0]
-	for j in xrange (11*10):	#555):
-		time.sleep(2)
+	for j in xrange (22*10):	#555):
+		time.sleep(.3)
 		rows = DBRCV.get_rows ("SELECT * FROM vdata_pos WHERE id_dp > %s AND gosnum IN %s ORDER BY ida, t" % (iddp, swhere))
 		idd = ""
 		list_out = []
@@ -51,7 +51,11 @@ def	get_data (routes, clid = 'nijniyoblast'):
 					if list_out:	list_out.append("</track>")
 					route = get_route (routes, r[d.index('gosnum')])
 					device = "HTC Diamond"	# Тип устройства, на котором запущены мобильные Яндекс.Карты.
-					list_out.append ("""<track uuid="%s" deviceid="%s" softid="Yandex Maps" softver="2.10" category="s" route="%s" vehicle_type="bus">""" % (str(r[d.index('idd')]), device, route))
+					if r[d.index('ytype')]:
+						vtype = r[d.index('ytype')]
+					else:	vtype = "bus"
+				#	list_out.append ("""<track uuid="%s" deviceid="%s" softid="Yandex Maps" softver="2.10" category="s" route="%s" vehicle_type="bus">""" % (str(r[d.index('idd')]), device, route))
+					list_out.append ("""<track uuid="%s" deviceid="%s" softid="Yandex Maps" softver="2.10" category="s" route="%s" vehicle_type="%s">""" % (str(r[d.index('idd')]), device, route, vtype))
 					idd = str(r[d.index('idd')])
 			#	print r[d.index('t')], r[d.index('id_dp')], r[d.index('x')], r[d.index('y')], r[d.index('sp')], r[d.index('marka')]	# r[d.index('')]
 			#	print r[d.index('t')], r[d.index('id_dp')], r[d.index('ida')], r[d.index('idd')], r[d.index('code')], r[d.index('gosnum')]	# r[d.index('')]
@@ -253,7 +257,11 @@ def	get_clid2route (clid_list):
 					if list_out:	list_out.append("</track>")
 					route = get_route (crouts, r[d.index('gosnum')])
 					device = "HTC Diamond"	# Тип устройства, на котором запущены мобильные Яндекс.Карты.
-					list_out.append ("""<track uuid="%s" deviceid="%s" softid="Yandex Maps" softver="2.10" category="s" route="%s" vehicle_type="bus">""" % (str(r[d.index('idd')]), device, route))
+					if r[d.index('ytype')]:
+						vtype = r[d.index('ytype')]
+					else:	vtype = "bus"
+				#	list_out.append ("""<track uuid="%s" deviceid="%s" softid="Yandex Maps" softver="2.10" category="s" route="%s" vehicle_type="bus">""" % (str(r[d.index('idd')]), device, route))
+					list_out.append ("""<track uuid="%s" deviceid="%s" softid="Yandex Maps" softver="2.10" category="s" route="%s" vehicle_type="%s">""" % (str(r[d.index('idd')]), device, route, vtype))
 					idd = str(r[d.index('idd')])
 
 				if curr_tm < r[d.index('t')]:
@@ -298,7 +306,7 @@ if __name__ == "__main__":
 	#	break
 		for i in xrange(111):
 			get_clid2route (clid_list)
-			time.sleep(5)
+			time.sleep(2)
 		j += 1
 		print '#'*22, j
 	#	if j > 113:	break
