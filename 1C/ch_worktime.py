@@ -478,14 +478,19 @@ if __name__ == "__main__":
 	
 		if FClear:
 			print	"\tОТМЕНЕНО"
-			dbc = dbtools.dbtools (bases['cntr'])
-			query = 'select gosnum, device_id, bm_wtime FROM wtransports WHERE bm_wtime = 1023'
-			res = dbc.get_table('wtransports', 'bm_wtime = 1023', cols='gosnum, device_id, bm_wtime')
+		#	query = 'select gosnum, device_id, bm_wtime FROM wtransports WHERE bm_wtime = 1023'
+		#	res = dbcntr.get_table('wtransports', 'bm_wtime = 1023', cols='gosnum, device_id, bm_wtime')
+			res = dbcntr.get_table('wtransports', 'bm_wtime >= 0', cols='gosnum, device_id, bm_wtime')
 			print res[0]
 			if res:
 				for r in res[1]:
 					gosnum, device_id, bm_wtime = r
-					print gosnum, device_id, bm_wtime
+					if device_id < 0:	continue
+					nav2reg = dbwtm.get_dict("select * FROM nav2regnum WHERE regnum = '%s'" % gosnum)
+					if not nav2reg:
+						print "NOT auto:\t", gosnum, device_id, bm_wtime
+					elif nav2reg['device_id'] != device_id:
+						print "\t", gosnum, device_id, "!=\t", nav2reg['device_id'] 
 			'''
 			print	"\tОчистить и обновить список машин (nav2regnum)"
 			query = "select * FROM nav2regnum WHERE stat < 0 ORDER BY stat"

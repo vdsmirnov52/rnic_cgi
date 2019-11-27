@@ -83,24 +83,22 @@ def	get_nddata (tname, last_id):
 		gpssatcount = direction = 0
 		if r[d.index('direction')]:	direction = r[d.index('direction')]
 		if r[d.index('gpssatcount')]:	gpssatcount = r[d.index('gpssatcount')]
+		query = "UPDATE last_pos SET x = %s, y = %s, t = %s, cr = %s, sp = %s, st = %s WHERE ida = %s AND idd = '%s'" % (
+				r[d.index('lon')], r[d.index('lat')], intm, direction, r[d.index('speed')], gpssatcount, devid, devid)
+		if not RECVR.qexecute(query):
+			query = "INSERT INTO last_pos (ida, idd, x, y, t, cr, sp, st) VALUES (%d, '%d', %s, %s, %s, %s, %s, %s);" % (devid, devid, r[d.index('lon')], r[d.index('lat')], intm, direction, r[d.index('speed')], gpssatcount)
+			print query, RECVR.qexecute
+		'''##########
+		if RECVR.qexecute ("DELETE FROM last_pos WHERE ida =%d;" % devid):
+			RECVR.qexecute ("INSERT INTO last_pos (ida, idd, x, y, t, cr, sp, st) VALUES (%d, '%d', %s, %s, %s, %s, %s, %s);" % (
+						devid, devid, r[d.index('lon')], r[d.index('lat')], intm, direction, r[d.index('speed')], gpssatcount))
 		querys = [
-			"DELETE FROM last_pos WHERE ida =%d;" % devid,
+			"DELETE FROM last_pos WHERE ida = %d OR idd = '%s';" % (devid, devid),
 			"INSERT INTO last_pos (ida, idd, x, y, t, cr, sp, st) VALUES (%d, '%d', %s, %s, %s, %s, %s, %s);" % (devid, devid, r[d.index('lon')], r[d.index('lat')], intm, direction, r[d.index('speed')], gpssatcount),
-			"INSERT INTO data_pos (ida, idd, x, y, t, cr, sp, st) VALUES (%d, '%d', %s, %s, %s, %s, %s, %s);" % (devid, devid, r[d.index('lon')], r[d.index('lat')], intm, direction, r[d.index('speed')], gpssatcount),
+	#		"INSERT INTO data_pos (ida, idd, x, y, t, cr, sp, st) VALUES (%d, '%d', %s, %s, %s, %s, %s, %s);" % (devid, devid, r[d.index('lon')], r[d.index('lat')], intm, direction, r[d.index('speed')], gpssatcount),
 			]
 		if not RECVR.qexecute ("\n".join(querys)):	print querys
 		'''############
-		query = "DELETE FROM last_pos WHERE ida =%d;\nINSERT INTO last_pos (ida, idd, x, y, t, cr, sp, st) VALUES (%d, '%d', %s, %s, %s, %s, %s, %s)" % (devid, devid, devid,
-			r[d.index('lon')], r[d.index('lat')], int(time.mktime(sstm)), direction, r[d.index('speed')], gpssatcount)
-		#	r[d.index('lon')], r[d.index('lat')], int(time.mktime(sstm)), r[d.index('direction')], r[d.index('speed')], r[d.index('gpssatcount')])
-		if not RECVR.qexecute(query):
-			print query
-		tm += 3*3600
-		query = "DELETE FROM last_pos WHERE ida =%d;\nINSERT INTO last_pos (ida, idd, x, y, t, cr, sp, st) VALUES (%d, '%d', %s, %s, %s, %s, %s, %s)" % (idd, idd, idd,
-			jspack['lon'], jspack['lat'], int(tm), jspack['cr'], jspack['v'], jspack['s'])
-	#	print idd, jspack
-		if DB_ID.qexecute(query):
-		'''##########
 		if rid > max_id:	max_id = rid
 		j += 1
 	print "\tlen(res[1]): %d, j: %d, max_id: %d" % (len(res[1]), j, max_id)
@@ -131,12 +129,11 @@ def     update_recv_ts ():
 		id_org, inn, bm_ssys, stat = r
 		if bm_ssys == 131072 and stat == 0:	continue
 		list_org.append(id_org)
-	print	"list_org:", list_org
+#	print	"list_org:", list_org
 
-#	query = "SELECT id_ts, gosnum, marka, a.device_id, inn, uin, o.bm_ssys FROM transports t, organizations o, atts a WHERE o.id_org IN (%s) AND t.id_org = o.id_org AND id_ts = autos AND a.last_date > '%s' ORDER BY o.id_org;" % (
-#		str(list_org)[1:-1], time.strftime("%Y-%m-%d 00:00:00", time.localtime (time.time ())))
-	query = "SELECT id_ts, gosnum, marka, a.device_id, inn, uin, o.bm_ssys FROM transports t, organizations o, atts a WHERE o.id_org IN (%s) AND t.id_org = o.id_org AND id_ts = autos ORDER BY o.id_org;" % str(list_org)[1:-1]
-	
+#	query = "SELECT id_ts, gosnum, marka, a.device_id, inn, uin, o.bm_ssys FROM transports t, organizations o, atts a WHERE o.id_org IN (%s) AND t.id_org = o.id_org AND id_ts = autos ORDER BY o.id_org;" % str(list_org)[1:-1]
+	query = "SELECT id_ts, gosnum, marka, a.device_id, inn, uin, o.bm_ssys FROM transports t, organizations o, atts a WHERE o.id_org IN (%s) AND %s ORDER BY o.id_org;" % (
+		str(list_org)[1:-1], " AND ".join(["bm_status < 1024", "t.id_org = o.id_org", "id_ts = autos"]))
 #	print query
 	rows = dbcntr.get_rows (query)
 	if not rows:
@@ -151,14 +148,22 @@ def     update_recv_ts ():
 			print "\tNot device_id", id_ts, gosnum, marka, "inn:", inn, "uin:", uin, "bm_ssys:", bm_ssys
 			continue
 		if device_id < 0:
+		#	print type(uin)
+			uin = uin.strip()
 		#	print "WWW\t", id_ts, gosnum, marka, device_id, inn, uin, bm_ssys
-			rw = dbi.get_row ("SELECT gosnum, device_id, inn FROM recv_ts WHERE gosnum = '%s' OR device_id = %s" % (gosnum, uin))
+		#	rw = dbi.get_row ("SELECT gosnum, device_id, inn FROM recv_ts WHERE gosnum = '%s' OR device_id = %s;" % (gosnum, uin))
+			query = "SELECT gosnum, device_id, inn FROM recv_ts WHERE gosnum = '%s' OR device_id = %s;" % (gosnum, uin)
+			rw = dbi.get_row (query)
+			if dbi.last_error:
+		#		for s in dbi.last_error:	print s,
+				print ">\t", query
 			if rw:
 				g, d, i = rw
 				if gosnum == g and uin == d and inn == i:	
 					print "Wialon\t", id_ts, gosnum, marka, device_id, inn
 				
 			else:
+				print ">\tuin [%s]" % uin, ord(uin[-1])
 				if bm_ssys == 131072:	# Уборка снега
 					query = "INSERT INTO recv_ts (idd, inn, gosnum, marka, device_id, stat_ts) VALUES ('idd%s', %s, '%s', %s, %s, 0)" % (uin, inn, gosnum, marka, uin)
 				else:	query = "INSERT INTO recv_ts (idd, inn, gosnum, marka, device_id, stat_ts) VALUES ('%s', %s, '%s', %s, %s, 0)" % ((device_id *-1), inn, gosnum, marka, uin)
@@ -167,6 +172,7 @@ def     update_recv_ts ():
 			continue		### 20181211
 		
 		rr = dbi.get_row ("SELECT gosnum, device_id, inn FROM recv_ts WHERE gosnum = '%s' OR device_id = %s" % (gosnum, device_id))
+		if dbi.last_error:	print ">\t '%s', '%s'" % (gosnum, device_id)
 		if rr:
 			g, d, i = rr
 			if device_id < 0 and gosnum == g :		continue

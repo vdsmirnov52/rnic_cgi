@@ -40,7 +40,7 @@ class   dbtools:
 			res = False
 		finally:
 			self.conn.commit()
-		if res:	last_error = None
+		if res:	self.last_error = None
 		return  res
 
 	def     get_rows (self, query):
@@ -68,6 +68,7 @@ class   dbtools:
 		if self.rows:	return	self.desc, self.rows
 
 	def     get (self, query, fall):
+		self.last_error = None
 		try:
 			self.curs.execute (query)
 			self.desc = [f[0] for f in self.curs.description]
