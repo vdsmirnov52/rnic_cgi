@@ -247,12 +247,14 @@ def	get_clid2route (clid_list):
 		d = DBRCV.desc
 		idd = ""
 		list_out = []
+		list_gosnum = []	### DDD
 		curr_tm = int(time.time())
 		if rows:
 			for r in rows:
 				if not r[d.index('x')]:		continue
 				if curr_tm < r[d.index('t')]:	continue	###
 				if r[d.index('t')] > maxtm:	maxtm = r[d.index('t')]
+				list_gosnum.append(r[d.index('gosnum')])	### DDD
 				if str(r[d.index('idd')]) != idd:
 					if list_out:	list_out.append("</track>")
 					route = get_route (crouts, r[d.index('gosnum')])
@@ -276,6 +278,7 @@ def	get_clid2route (clid_list):
 				print	time.strftime("%d.%m.%Y %T \t", time.localtime(time.time())), len (list_out), '\t',	#"*"*11
 				list_out.append("</track>")
 				save_file (list_out, clid)
+			#	print	clid, ' '.join(list_gosnum)	### DDD
 
 def	test (clids = None):
 	for clid in clid2route.keys():
