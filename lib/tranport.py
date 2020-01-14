@@ -383,4 +383,4 @@ def main (SS, conf, request):
 		print "</td></tr></table>"
 	except:
 		exc_type, exc_value = sys.exc_info()[:2]
-		perror ("EXCEPT conract", " ".join(["<pre>", str(exc_type).replace('<', '# '), str(exc_value), "</pre>"]))
+		perror ("EXCEPT transport", " ".join(["<pre>", str(exc_type).replace('<', '# '), str(exc_value), "</pre>"]))

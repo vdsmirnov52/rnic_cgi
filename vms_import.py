@@ -395,10 +395,13 @@ def	check_phone ():
 	for r in rows:
 	#	if r[d.index('id')]:		cols.append('device_id=%d' % r[d.index('id')])
 	#	if r[d.index('transport_id')]:	cols.append('transport_id=%d' %  r[d.index('transport_id')])
-		phone = phone2 = None
+		phone = phone2 = imei = None
 		if r[d.index('id')]:		device_id = r[d.index('id')]
 		if r[d.index('phone')]:		phone = r[d.index('phone')]		
 		if r[d.index('phone2')]:	phone2 = r[d.index('phone2')]		
+		if r[d.index('imei')]:		imei = r[d.index('imei')]		
+		if r[d.index('code')]:		code = r[d.index('code')]		
+	#	print "imei", imei, type(imei)
 		adct = DB_cont.get_dict ("SELECT * FROM atts WHERE device_id = %s;" % device_id)
 		if not adct:		continue
 		sets = []
@@ -408,6 +411,10 @@ def	check_phone ():
 		if adct.get('sim_2') != phone2:
 			if phone2:	sets.append ( "sim_2 = '%s'" % phone2)
 			else:		sets.append ( "sim_2 = NULL")
+		if imei and imei.isdigit() and adct.get('uin') != imei:
+			sets.append("uin = '%s'" % imei)
+		if adct.get('code') != code:
+			sets.append("code = '%s'" % code)
 		if sets:
 		#	print	adct
 			query = "UPDATE atts SET %s WHERE device_id = %s;" % (", ".join (sets), device_id)

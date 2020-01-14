@@ -120,8 +120,8 @@ def	insert2wtm (ddb, rows):		# Писать code, imei, id, device_id, regnum, r
 		except:
 			print "except:", r[0], r[1], r[2], r[3], isnone(r[4]), isnone(r[5])
 	query = "INSERT INTO nav2regnum (%s) VALUES %s" % (rnames, ','.join(values))
-	#print query
 	ddb.qexecute(query)
+	if ddb.last_error:	print "\n\t".join(values)
 
 def	check_new_nav (dbwtm, rows):
 	j = 0

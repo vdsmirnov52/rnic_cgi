@@ -21,6 +21,7 @@ class   dbtools:
 	print_error = 1	## Вывод ошибок на печать (0 - отменить печать)
 	last_error =	None
 	desc = []       ## Список наименования полей последнего запроса
+	rows = None
 	def __init__ (self, desc_db = 'host=localhost dbname=b03 port=5432 user=vds', perror = 1):
 		self.print_error = perror	# Вывод ошибок на печать
 		try:
@@ -74,16 +75,16 @@ class   dbtools:
 			self.desc = [f[0] for f in self.curs.description]
 			if fall:	return  self.curs.fetchall()
 			else:		return  self.curs.fetchone()
-		except (psycopg2.OperationalError, psycopg2.ProgrammingError, psycopg2.IntegrityError, psycopg2.InternalError):
+		except	(psycopg2.OperationalError, psycopg2.ProgrammingError, psycopg2.IntegrityError, psycopg2.InternalError, ValueError):	# 2019.12.13
 			self.perrs ()
 		finally:
 			self.conn.commit()
 
-	def     perrs (self, label = 'EXCEPT'):
+	def     perrs (self, label = 'dbtools'):
 		exc_type, exc_value = sys.exc_info()[:2]
 		self.last_error = (exc_type, exc_value)
 		if self.print_error:
-			print label, exc_type
+			print 'EXCEPT', label, exc_type
 			print exc_value
 
 if __name__ == '__main__':

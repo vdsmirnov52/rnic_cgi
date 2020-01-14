@@ -62,7 +62,7 @@ def	get_data (routes, clid = 'nijniyoblast'):
 
 				list_out.append ("""\t<point latitude="%f" longitude="%f" avg_speed="%d" direction="%d" time="%s"/>""" % (
 					float(r[d.index('y')]), float(r[d.index('x')]), int(r[d.index('sp')]), int(r[d.index('cr')]), time.strftime("%d%m%Y:%H%M%S", time.gmtime (r[d.index('t')])) ))
-			print	time.strftime("%d.%m.%Y %T \t", time.localtime(time.time())), len (list_out), '\t',	#"*"*11
+			print	time.strftime("%d.%m.%Y %T \t", time.localtime(time.time())), len (list_out),	#\t'	#"*"*11
 			if list_out:
 				list_out.append("</track>")
 			#	print "\n".join(list_out)
@@ -78,7 +78,12 @@ def	save_file (list_out, clid = 'nijniyoblast'):
 #	print "\n".join(data), "\n", "#"*22
 	try:
 		r = requests.post("http://extjams.maps.yandex.net/mtr_collect/1.x/", data={"data": "\n".join(data), "compressed": 0}, headers=headers)
-		print r, r.text, clid
+		print "\tyandex:", r, r.text,
+		time.sleep(1)
+		r = requests.post("https://www.bustime.ru/api/upload/yproto/nizhniy-novgorod/", data={"data": "\n".join(data), "compressed": 0}, headers=headers)
+		print "\tbustime:", r.text,
+		print clid
+		
 	except:
 		exc_type, exc_value = sys.exc_info()[:2]
 		print	"EXCEPT save_file", str(exc_type), exc_value
@@ -128,6 +133,7 @@ inn2clid = {
 	5252028596: 'nn_pavlovo',	# ООО "Автотайм"	928
 	5248024888: 'nn_gorodets',	# МУП "Городецпассажиравтотранс"	924
 	5248016213: 'nn_gorodets',	# ООО "Экипаж"	921
+	5254000797: 'nn_sarov',		# МУП "Горавтотранс" Саров
 	}
 
 
@@ -238,7 +244,11 @@ def	get_clid2route (clid_list):
 	global	clid2route
 
 	for clid in clid_list:
-		crouts = clid2route[clid].get('routs')
+		try:
+			crouts = clid2route[clid].get('routs')
+		except:
+			print "except: clid", clid
+			return
 		if not	crouts:			continue
 		swhere = clid2route[clid]['where']
 		maxtm = clid2route[clid]['tm']
@@ -275,7 +285,7 @@ def	get_clid2route (clid_list):
 					float(r[d.index('y')]), float(r[d.index('x')]), int(r[d.index('sp')]), int(r[d.index('cr')]), time.strftime("%d%m%Y:%H%M%S", time.gmtime (r[d.index('t')])) ))
 			clid2route[clid]['tm'] = maxtm
 			if list_out:
-				print	time.strftime("%d.%m.%Y %T \t", time.localtime(time.time())), len (list_out), '\t',	#"*"*11
+				print	time.strftime("%d.%m.%Y %T \t", time.localtime(time.time())), len (list_out),	# '\t',	#"*"*11
 				list_out.append("</track>")
 				save_file (list_out, clid)
 			#	print	clid, ' '.join(list_gosnum)	### DDD

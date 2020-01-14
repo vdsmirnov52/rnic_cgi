@@ -138,7 +138,7 @@ def	out_tform (SS, tname, pkname, idrow, title = None, stat = None, reqst = None
 			if datt['transport_id'] != row[res[0].index('transport_id')]:
 				print "<span class='bferr'> Транспорт ", row[res[0].index('transport_id')], " != </span>"
 			print datt['transport_id'], "</b></td></tr>"
-			for c in ['modele', 'uin', 'sim_1', 'sim_2', 'last_date']:
+			for c in ['modele', 'uin', 'code', 'sim_1', 'sim_2', 'last_date']:
 				if datt[c]:
 					print "<tr><td align='right'>%s:</td><td><b>" % c.upper(), datt[c], "</b></td></tr>"
 		else:	 print "<tr><td align='right'>&nbsp;</td><td><span class='bferr'> Отсутствует прибор для ТС (id_ts: %d) </span></td></tr>" % row[res[0].index('id_ts')]
@@ -1291,7 +1291,15 @@ def	ttt(SS, request):
 #	print	"WHEREs:", wheres, orderby
 #	print "where_list:", where_list
 #	cglob.ppobj (DICT_TABS[tname])
-	res = idb.get_table (tname, wheres)
+	if tname == 'wtransports':
+		cols = "id_ts, garnum, gosnum, marka, modele, vin, ttname, oname, rname, id_mail, bm_status, amark, last_date, bid, tm_creat, bm_wtime, bm_ssys, id_att, id_tgroup, region, id_org, ts_type, rem"
+	elif tname == 'vtransports':
+		cols = "id_ts, garnum, gosnum, marka, modele, vin, ttname, oname, rname, id_mail, bm_status, bm_ssys, id_att, id_tgroup, region, id_org, ts_type, rem"
+	else:	cols = None
+	
+	res = idb.get_table (tname, wheres, cols=cols)
+	if idb.last_error:
+		print "except: idb.get_table ", tname, wheres, "last_error", idb.last_error, idb.print_error, idb.last_query
 	if res:
 #		print res[0], "where_list", where_list
 		out_table(SS, idb, tname, res, DICT_TABS[tname])
