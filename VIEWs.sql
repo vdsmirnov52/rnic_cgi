@@ -93,3 +93,5 @@ FROM arms a
 	LEFT JOIN contracts c ON a.id_contr = c.id_contr
 	LEFT JOIN bids b ON a.id_bid = b.id_bid
 	;
+-- 2020-01-29
+CREATE INDEX ON bids (id_org);

@@ -112,16 +112,24 @@ def	isnone(v):
 
 def	insert2wtm (ddb, rows):		# Писать code, imei, id, device_id, regnum, regnumber в worktime.nav2regnum
 	rnames = "code, imei, id, device_id, regnum, regnumber"
-	values = []
+#	values = []
 	for r in rows:
 	#	print r, 
 		try:
-			values.append ("('%s', '%s', %d, %d, %s, %s)" % (r[0], r[1], r[2], r[3], isnone(r[4]), isnone(r[5])))
+		#	values.append ("('%s', '%s', %d, %d, %s, %s)" % (r[0], r[1], r[2], r[3], isnone(r[4]), isnone(r[5])))
+			query = "INSERT INTO nav2regnum (%s) VALUES ('%s', '%s', %d, %d, %s, %s)" % (rnames, r[0], r[1], r[2], r[3], isnone(r[4]), isnone(r[5]))
+			ddb.qexecute(query)
+			if ddb.last_error:	#	print "except:", r[0], r[1], r[2], r[3], isnone(r[4]), isnone(r[5])
+				qdel = "DELETE FROM nav2regnum WHERE id = %s;\n%s;" % (r[2], query)
+				print qdel, ddb.qexecute(qdel)
 		except:
+			pass
+	'''
 			print "except:", r[0], r[1], r[2], r[3], isnone(r[4]), isnone(r[5])
 	query = "INSERT INTO nav2regnum (%s) VALUES %s" % (rnames, ','.join(values))
 	ddb.qexecute(query)
 	if ddb.last_error:	print "\n\t".join(values)
+	'''
 
 def	check_new_nav (dbwtm, rows):
 	j = 0

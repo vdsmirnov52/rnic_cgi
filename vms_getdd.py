@@ -28,7 +28,7 @@ def	get_racv_list ():
 		if r[0]:	dev_list.append(int(r[0]))
 	return	dev_list
 
-def	clear_old_data (dtime = 24*3600):
+def	clear_old_data (dtime = 48*3600):
 	""" Удалить устаревшие навигационные данные в БД receiver 	"""
 	tmin = int(time.time()) - dtime
 	query = "DELETE FROM data_pos WHERE t < %d; DELETE FROM data_prms WHERE t < %d;" % (tmin, tmin)
