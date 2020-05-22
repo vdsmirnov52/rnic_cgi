@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python -u
 # -*- coding: utf-8 -*-
 
 import	smtplib
@@ -9,8 +9,8 @@ from	email.utils import COMMASPACE
 from	email import Encoders
 import	base64
 
-def	send_file (toaddr, files, body = None, subject = None):
-	fromaddr = "rnic-nn@rnc52.ru"
+def	send_file (toaddr, files, body = None, subject = None, fromaddr=None):
+	if not fromaddr:	fromaddr = "rnic-nn@rnc52.ru"
 	if not subject:	subject = "SUBJECT OF THE MAIL"
 
 	msg = MIMEMultipart()
@@ -99,11 +99,11 @@ def	send_notice (tolist, autos):
 	проведение диагностических работ (во вложении) и прислать нам подписанную скан-копию данной заявки.
 	
 	По всем вопросам просим обращаться в техническую поддержку АО «РНИЦ Нижегородской области»
-	по тел. (831) 261-75-97 (доб. 307, 308) или e-mail: rnic-nn@rnc52.ru.
+	по тел. (831) 261-75-97 (доб. 307, 308) или e-mail: support@rnc52.ru.
 	Образцы документов находятся по адресу http://rnc52.ru/documents
 	"""
 	sbody = shead + "\n\t".join(autos) + sbutt
-	return	send_file (tolist, files, body=sbody, subject=ssubj)
+	return	send_file (tolist, files, body=sbody, subject=ssubj, fromaddr='support@rnc52.ru')
 
 def	send_sorry (tolist, autos):
 	""" Отправка уведомлений о регламентных работах 	"""
@@ -130,6 +130,18 @@ def	send_sorry (tolist, autos):
 #	print sbody
 	return	send_file (tolist, [], body=sbody, subject=ssubj)
 
+def	send_reminder (tolist, autos):
+	""" НАПОМИНАНИЕ О ПЕРЕЧИСЛЕНИИ ОПЛАТЫ ПО ДОГОВОРУ	"""
+	ssubj =	"«РНИЦ Нижегородской области» НАПОМИНАНИЕ О ПЕРЕЧИСЛЕНИИ ОПЛАТЫ ПО ДОГОВОРУ"
+	shead = """Уважаемый абонент!\n
+	По заключенному Вами с АО "РНИЦ Нижегородской области" договору срок оплаты за январь истёк 25.02.2020г.
+	Просим оплатить задолженность в кратчайшие сроки.\n
+	Если у Вас возникли вопросы по задолженности, обращайтесь по телефону 8(831)261-75-96 (доб. 313).
+	"""
+	sbody = shead + "\n\t".join(autos)
+#	print sbody
+	return	send_file (tolist, [], body=sbody, subject=ssubj)
+	
 import	os, time, sys
 
 toaddrs = [
@@ -145,26 +157,34 @@ toaddrs = [
 		]
 
 def	send_sssssssssss():
+	""" Рассылка сообщений абонентам	"""
 	import	dbtools
 
-#	qqq = "select id_org, post, email FROM vpersons WHERE id_org IN (select id_org FROM vorganizations WHERE bm_ssys > 0) AND email IS NOT NULL ORDER BY id_org"
-#	Всем
-#	qqq = "select id_org, post, email FROM vpersons WHERE id_org IN (select id_org FROM organizations WHERE bm_ssys > 0 AND id_org IN (select DISTINCT id_org FROM contracts  WHERE ctype = 8)) AND email IS NOT NULL ORDER BY id_org;"
-#	СМП
+#	СМУ ПП 
 	qqq = "select id_org, post, email FROM vpersons WHERE id_org IN (select id_org FROM organizations WHERE bm_ssys = 2 AND id_org IN (select DISTINCT id_org FROM contracts  WHERE ctype = 8)) AND email IS NOT NULL ORDER BY id_org;"
+#	Всем
+	qqq = "select id_org, post, email FROM vpersons WHERE id_org IN (select id_org FROM organizations WHERE id_org IN (select DISTINCT id_org FROM contracts  WHERE ctype = 8)) AND email IS NOT NULL ORDER BY id_org;"
+	print qqq
+
 	idb = dbtools.dbtools("host=127.0.0.1 dbname=contracts port=5432 user=smirnov")
 	rows = idb.get_rows(qqq)
 	if not rows:	return
 	id_oooo = 0
+	j = 0
 	for r in rows:
-		time.sleep(13)
 		id_org, post, email = r
 		if id_oooo == id_org:	continue
-		if not email.strip():	continue
+		if not email.strip() or len(email.strip()) < 10:	continue
+		rc = idb.get_row("SELECT count(*) FROM wtransports WHERE id_org = %s" % id_org)	# наличие активного транспорта
+		if not rc or rc[0] == 0:	continue
+		j += 1
+		if j < 553:	continue
 		id_oooo = id_org
-		print	id_org, id_oooo, post, email
-		send_sorry([email.strip()], ['###'])
+		print	j, id_org, id_oooo, post, email, rc,
+		print	send_reminder ([email.strip()], ['rnic-nn@rnc52.ru'])
+	#	send_sorry([email.strip()], ['###'])
 	#	if id_oooo > 22:	break
+		time.sleep(113)
 	
 if __name__ == "__main__":
 	filepath = [r"/home/smirnov/MyTests/CGI/curr_status_TC.html", r"/tmp/temp_status_TC.csv"]
@@ -182,6 +202,7 @@ if __name__ == "__main__":
 	body = ''.join(lll)
 	'''
 	send_sssssssssss()
+#	send_reminder (toaddrs, ['rnic-nn@rnc52.ru'])
 #	send_sorry (toaddrs, ['rnic-nn@rnc52.ru'])
 	'''
 	sdate = time.strftime("%d.%m.%Y", time.localtime(time.time()))

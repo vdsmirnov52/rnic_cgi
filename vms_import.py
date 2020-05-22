@@ -367,7 +367,7 @@ def	check_yullik (r, d):
 			print query
 
 def	check_phone ():
-	""" Проверка SIM карт	"""
+	""" Проверка SIM карт uin (imei), code	"""
 	sql = """SELECT nd.id, imei, nd.code, nd.name, nd.phone, nd.phone2, 
 	nd.operator1_id, nd.operator2_id, nd.icc_id1, nd.icc_id2, nd.devicetype_id,	--yu
 	nt.description as marka, t2d.id as t2d_id, atl.transport_id, t.regnum, t.garagenum, t.contractnumber,

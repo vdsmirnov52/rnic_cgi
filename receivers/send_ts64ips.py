@@ -16,23 +16,21 @@ import	json
 #	Test Wialon IPS:
 #	ID_DEV число в диапазоне 230056-230065
 # Test
+#	Протоколы форматов omnicomm, wialon IPS, АвтоГраф принимаются на сервер 5.189.234.14 порт 2226 
+
+IPS_IP = '5.189.234.14'
+IPS_PORT = 2226
+'''
 IPS_IP =	'109.95.211.141'
 IPS_PORT =	2241
 '''
-IPS_IP =	'81.177.167.215'
-IPS_PORT = 	2241
+'''
 # UDP		~/MyTests/egts/udp_test.py	- Прием данных
 IPS_IP =	'127.0.0.1'
 IPS_PORT =	50005
-'''
-'''
 # TCP Local	~/MyTests/egts/egts_test.py	- Прием данных
 IPS_IP =	'10.10.2.241'
 IPS_PORT =	9145
-'''
-'''	
-IPS_IP = '109.95.210.203'
-IPS_PORT = 2226
 '''
 Q_SEND = None
 
@@ -40,26 +38,27 @@ def	ips_send (queue):
 
 #	logn = ''
 	ipsock = None
-	j = 0
 	jsp = queue.get()
-#	logn = jsp
+	logn = jsp
+	j = 0
 	print 'ips_send\t>>\t'
 	while True:
 	#	print '\t>>\t', jsp.strip()
 	#	print logn.strip(), '\t>>\t', jsp.strip(),
-	#	if not logn:	logn = jsp
+		if not logn:	logn = jsp
 		try:
 			if not ipsock:
 				ipsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)	# UDP
-			#	ipsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	# TCP
 				ipsock.setblocking(False)
+			#	ipsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	# TCP
+			#	ipsock.setblocking(True)
 				ipsock.connect((IPS_IP, IPS_PORT))
-		#	time.sleep(1)
+				print "Connect ipsock.fileno:", ipsock.fileno()
 			ipsock.send(jsp)
 			'''
-			while j < 5:
+			while j < 5:		### TCP
 			#	j += 1
-				time.sleep(2)
+			#	time.sleep(1)
 				result = ipsock.recv(1024)
 				print '\t<<', result.strip()
 				break

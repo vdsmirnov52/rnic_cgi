@@ -79,9 +79,11 @@ def	save_file (list_out, clid = 'nijniyoblast'):
 	try:
 		r = requests.post("http://extjams.maps.yandex.net/mtr_collect/1.x/", data={"data": "\n".join(data), "compressed": 0}, headers=headers)
 		print "\tyandex:", r, r.text,
+		'''
 		time.sleep(1)
 		r = requests.post("https://www.bustime.ru/api/upload/yproto/nizhniy-novgorod/", data={"data": "\n".join(data), "compressed": 0}, headers=headers)
 		print "\tbustime:", r.text,
+		'''
 		print clid
 		
 	except:

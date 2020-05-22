@@ -209,7 +209,7 @@ def	main ():
 				j += 1
 				if j > 276:
 					j = 0
-					clear_old_data (24*3600)
+					clear_old_data (10*24*3600)
 					update_recv_ts ()
 					recvr_dev_list = get_racv_list ()
 					time.sleep(11)
